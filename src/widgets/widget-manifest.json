@@ -1,0 +1,415 @@
+{
+    "version": "1.0.0",
+    "widgets": [
+        {
+            "uri": "/ai-insights",
+            "name": "AI Insights",
+            "description": "Visibility score, mentions, citations, and engine breakdown",
+            "examples": [
+                {
+                    "name": "NitroStack insights",
+                    "description": "30-day AI visibility snapshot",
+                    "data": {
+                        "brand": { "name": "NitroStack", "domain": "nitrostack.ai" },
+                        "metrics": {
+                            "visibilityScore": 84.2,
+                            "visibilityDelta": 12.4,
+                            "totalMentions": 1284,
+                            "organicMentions": 942,
+                            "seededMentions": 342,
+                            "explicitMentions": 611,
+                            "citations": 317,
+                            "dropsDetected": 2
+                        },
+                        "recentMentions": [
+                            {
+                                "id": "m-001",
+                                "engine": "ChatGPT",
+                                "prompt": "best MCP server framework for TypeScript teams",
+                                "type": "explicit",
+                                "sentiment": "positive",
+                                "when": "2m ago"
+                            },
+                            {
+                                "id": "m-002",
+                                "engine": "Perplexity",
+                                "prompt": "how to add widgets to an MCP app",
+                                "type": "citation",
+                                "sentiment": "positive",
+                                "when": "14m ago"
+                            }
+                        ],
+                        "trend": [
+                            { "date": "2026-08-11", "score": 71.4, "mentions": 68, "citations": 14 },
+                            { "date": "2026-08-18", "score": 79.4, "mentions": 97, "citations": 22 },
+                            { "date": "2026-08-24", "score": 84.2, "mentions": 131, "citations": 36 }
+                        ],
+                        "byProvider": [
+                            { "engine": "ChatGPT", "mentions": 486, "citations": 112, "share": 0.379 },
+                            { "engine": "Perplexity", "mentions": 312, "citations": 94, "share": 0.243 }
+                        ]
+                    }
+                }
+            ],
+            "tags": ["insights", "visibility", "dashboard"]
+        },
+        {
+            "uri": "/audience-personas",
+            "name": "Audience Personas",
+            "description": "ICP inputs and detected buyer personas",
+            "examples": [
+                {
+                    "name": "NitroStack personas",
+                    "description": "Enterprise architect and startup developer",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "icp": {
+                            "teamSize": "8–40 engineers",
+                            "budget": "$12k–$80k / year tooling",
+                            "salesCycle": "21–45 days",
+                            "mustHaveTraits": "TypeScript-first, widget SDK"
+                        },
+                        "personas": [
+                            {
+                                "id": "persona-david",
+                                "initials": "DA",
+                                "name": "David Chen",
+                                "title": "Lead Software Architect, Enterprise Solutions",
+                                "location": "United States",
+                                "summary": "David designs scalable architectures and is evaluating MCP runtimes.",
+                                "painPoints": ["Security review friction", "Sandbox cost"],
+                                "goals": ["Standardize tool contracts", "Cut infra spend"],
+                                "promptsSeeded": 14
+                            }
+                        ],
+                        "totalPersonas": 1
+                    }
+                }
+            ],
+            "tags": ["personas", "icp"]
+        },
+        {
+            "uri": "/prompt-intelligence",
+            "name": "Prompt Intelligence",
+            "description": "New and active buyer prompts",
+            "examples": [
+                {
+                    "name": "Active prompts",
+                    "description": "Prompts currently monitored",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "status": "all",
+                        "counts": { "new": 3, "active": 6, "archived": 0 },
+                        "prompts": [
+                            {
+                                "id": "p-001",
+                                "text": "What is the best MCP server framework for TypeScript teams?",
+                                "status": "active",
+                                "personaName": "Sarah Kim",
+                                "intent": "category",
+                                "engines": ["ChatGPT", "Perplexity"],
+                                "mentionRate": 0.82,
+                                "createdAt": "2026-08-04T14:10:00.000Z"
+                            }
+                        ],
+                        "totalPrompts": 1
+                    }
+                }
+            ],
+            "tags": ["prompts", "monitoring"]
+        },
+        {
+            "uri": "/ai-visibility",
+            "name": "AI Visibility",
+            "description": "Prompt-level mention, citation, and position table",
+            "examples": [
+                {
+                    "name": "Visibility table",
+                    "description": "Tracked prompt responses",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "metrics": {
+                            "trackedPrompts": 6,
+                            "mentionedIn": 5,
+                            "mentionRate": 0.833,
+                            "trendingUp": 8,
+                            "avgPosition": 2.2
+                        },
+                        "filters": { "engine": "all", "mentioned": "all" },
+                        "rows": [
+                            {
+                                "id": "v-001",
+                                "prompt": "What is the best MCP server framework for TypeScript teams?",
+                                "engine": "ChatGPT",
+                                "mentioned": true,
+                                "cited": true,
+                                "position": 2,
+                                "mentions": 3,
+                                "sources": ["nitrostack.ai/docs"],
+                                "createdAt": "2026-08-24T08:12:00.000Z"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "tags": ["visibility", "table"]
+        },
+        {
+            "uri": "/citations",
+            "name": "Citations",
+            "description": "Owned and third-party sources cited by AI engines",
+            "examples": [
+                {
+                    "name": "Citation feed",
+                    "description": "Sources engines cite for NitroStack",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "metrics": {
+                            "totalCitations": 317,
+                            "sourceDomains": 48,
+                            "ownedCitations": 129,
+                            "citationCoverage": 0.247
+                        },
+                        "engine": "all",
+                        "trend": [
+                            { "date": "2026-08-20", "citations": 28 },
+                            { "date": "2026-08-24", "citations": 36 }
+                        ],
+                        "byEngine": [
+                            { "engine": "ChatGPT", "citations": 112, "mentions": 486 },
+                            { "engine": "Perplexity", "citations": 94, "mentions": 312 }
+                        ],
+                        "citations": [
+                            {
+                                "id": "c-001",
+                                "engine": "Perplexity",
+                                "sourceDomain": "nitrostack.ai",
+                                "sourceUrl": "https://nitrostack.ai/docs/widgets",
+                                "owned": true,
+                                "prompt": "How do I add interactive widgets to an MCP app?",
+                                "snippet": "NitroStack widgets bind tool output through useWidgetSDK.",
+                                "date": "2026-08-24T07:40:00.000Z"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "tags": ["citations", "sources"]
+        },
+        {
+            "uri": "/competitive-intelligence",
+            "name": "Competitive Intelligence",
+            "description": "Share of voice and competitor radar",
+            "examples": [
+                {
+                    "name": "Competitor set",
+                    "description": "NitroStack versus FastMCP, LangChain, CrewAI",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "you": {
+                            "id": "comp-nitrostack",
+                            "name": "NitroStack",
+                            "domain": "nitrostack.ai",
+                            "visibility": 84,
+                            "sentiment": 78,
+                            "shareOfVoice": 34,
+                            "velocity": 72,
+                            "authority": 69,
+                            "mentions30d": 1284
+                        },
+                        "competitors": [
+                            {
+                                "id": "comp-nitrostack",
+                                "name": "NitroStack",
+                                "domain": "nitrostack.ai",
+                                "visibility": 84,
+                                "sentiment": 78,
+                                "shareOfVoice": 34,
+                                "velocity": 72,
+                                "authority": 69,
+                                "mentions30d": 1284
+                            },
+                            {
+                                "id": "comp-fastmcp",
+                                "name": "FastMCP",
+                                "domain": "gofastmcp.com",
+                                "visibility": 79,
+                                "sentiment": 81,
+                                "shareOfVoice": 29,
+                                "velocity": 64,
+                                "authority": 74,
+                                "mentions30d": 1102
+                            }
+                        ],
+                        "dimensions": ["visibility", "sentiment", "share", "velocity", "authority"],
+                        "shareOfVoiceTrend": [
+                            { "date": "2026-07-26", "NitroStack": 28, "FastMCP": 27 },
+                            { "date": "2026-08-23", "NitroStack": 34, "FastMCP": 29 }
+                        ],
+                        "trackedBrands": 2
+                    }
+                }
+            ],
+            "tags": ["competitors", "sov"]
+        },
+        {
+            "uri": "/scan-history",
+            "name": "Scan History",
+            "description": "Completed and queued analysis runs",
+            "examples": [
+                {
+                    "name": "Recent runs",
+                    "description": "Weekly visibility sweeps",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "runs": [
+                            {
+                                "id": "run-2408",
+                                "label": "Weekly visibility sweep",
+                                "status": "completed",
+                                "startedAt": "2026-08-24T07:00:00.000Z",
+                                "completedAt": "2026-08-24T07:18:00.000Z",
+                                "promptsRun": 42,
+                                "mentions": 131,
+                                "citations": 36,
+                                "visibilityScore": 84.2,
+                                "engines": ["ChatGPT", "Perplexity"],
+                                "delta": 0.4
+                            }
+                        ],
+                        "totalRuns": 1,
+                        "completedRuns": 1,
+                        "latestScore": 84.2
+                    }
+                }
+            ],
+            "tags": ["history", "scans"]
+        },
+        {
+            "uri": "/ai-readiness-audit",
+            "name": "AI Readiness Audit",
+            "description": "AEO crawl score and findings",
+            "examples": [
+                {
+                    "name": "Audit report",
+                    "description": "Readiness score with schema finding",
+                    "data": {
+                        "brand": { "name": "NitroStack", "domain": "nitrostack.ai" },
+                        "score": 76,
+                        "grade": "B",
+                        "crawledAt": "2026-08-23T11:40:00.000Z",
+                        "pagesCrawled": 86,
+                        "categories": [
+                            { "name": "Schema", "score": 48 },
+                            { "name": "Entity clarity", "score": 71 }
+                        ],
+                        "findings": [
+                            {
+                                "id": "f-002",
+                                "category": "Schema",
+                                "severity": "critical",
+                                "title": "Missing SoftwareApplication + Organization JSON-LD",
+                                "detail": "No structured data on nitrostack.ai.",
+                                "recommendation": "Publish Organization and SoftwareApplication schema.",
+                                "scoreImpact": -12
+                            }
+                        ],
+                        "critical": 1,
+                        "high": 2
+                    }
+                }
+            ],
+            "tags": ["audit", "aeo"]
+        },
+        {
+            "uri": "/geo-assets",
+            "name": "GEO Assets",
+            "description": "llms.txt, schema, robots, and entity files",
+            "examples": [
+                {
+                    "name": "Asset library",
+                    "description": "Published and draft GEO files",
+                    "data": {
+                        "brand": { "name": "NitroStack", "domain": "nitrostack.ai" },
+                        "assets": [
+                            {
+                                "id": "g-001",
+                                "name": "llms.txt",
+                                "kind": "llms.txt",
+                                "status": "published",
+                                "path": "/llms.txt",
+                                "updatedAt": "2026-08-20T14:00:00.000Z",
+                                "citationLift": "+18%",
+                                "summary": "Canonical index of 12 docs and product URLs."
+                            }
+                        ],
+                        "totalAssets": 1,
+                        "published": 1,
+                        "drafts": 0,
+                        "needsRefresh": 0
+                    }
+                }
+            ],
+            "tags": ["geo", "assets"]
+        },
+        {
+            "uri": "/agxp",
+            "name": "AGXP",
+            "description": "AI Growth Experience Platform loop",
+            "examples": [
+                {
+                    "name": "Growth loop",
+                    "description": "Six-stage AGXP scores",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "loopScore": 75,
+                        "lift30d": "+12.4% visibility · +21.6% citations",
+                        "stages": [
+                            {
+                                "id": "s-presence",
+                                "name": "Presence Mapping",
+                                "description": "Where the brand appears across engines.",
+                                "score": 84,
+                                "status": "healthy",
+                                "signals": ["1,284 mentions / 30d"]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "tags": ["agxp", "loop"]
+        },
+        {
+            "uri": "/content-studio",
+            "name": "Content Studio",
+            "description": "Gap-driven content briefs",
+            "examples": [
+                {
+                    "name": "Brief queue",
+                    "description": "Ready and gap briefs",
+                    "data": {
+                        "brand": { "name": "NitroStack" },
+                        "status": "all",
+                        "counts": { "ready": 2, "in_progress": 1, "published": 1, "gap": 2 },
+                        "briefs": [
+                            {
+                                "id": "b-001",
+                                "title": "The TypeScript MCP framework buyer’s guide",
+                                "status": "ready",
+                                "targetPrompt": "What is the best MCP server framework for TypeScript teams?",
+                                "gapScore": 22,
+                                "estimatedCitationLift": "+14%",
+                                "wordCount": 1800,
+                                "persona": "Sarah Kim",
+                                "outline": ["What production-ready MCP means", "Widget and task criteria"],
+                                "updatedAt": "2026-08-23T15:00:00.000Z"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "tags": ["content", "briefs"]
+        }
+    ],
+    "generatedAt": "2026-08-24T10:45:00.000Z"
+}
