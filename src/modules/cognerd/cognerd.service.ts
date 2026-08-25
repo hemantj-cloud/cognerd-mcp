@@ -145,7 +145,7 @@ export class CognerdService {
             brand: BRAND,
             you: COMPETITORS[0],
             competitors: COMPETITORS,
-            dimensions: ['visibility', 'sentiment', 'share', 'velocity', 'authority'] as const,
+            dimensions: ['visibility', 'sentiment', 'share', 'velocity', 'authority'],
             shareOfVoiceTrend: SOV_TREND,
             trackedBrands: COMPETITORS.length,
         };

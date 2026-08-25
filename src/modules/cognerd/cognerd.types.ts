@@ -14,7 +14,9 @@ export type PromptStatus = 'new' | 'active' | 'archived';
 export type AssetStatus = 'published' | 'draft' | 'needs_refresh';
 export type BriefStatus = 'ready' | 'in_progress' | 'published' | 'gap';
 
-export interface Brand {
+// NOTE: data shapes are `type` aliases (not `interface`) so they receive implicit
+// index signatures and remain assignable to the framework's JsonValue/ExampleData.
+export type Brand = {
     id: string;
     name: string;
     domain: string;
@@ -22,16 +24,16 @@ export interface Brand {
     workspace: string;
     description: string;
     credits: number;
-}
+};
 
-export interface IcpInputs {
+export type IcpInputs = {
     teamSize: string;
     budget: string;
     salesCycle: string;
     mustHaveTraits: string;
-}
+};
 
-export interface Persona {
+export type Persona = {
     id: string;
     initials: string;
     name: string;
@@ -41,9 +43,9 @@ export interface Persona {
     painPoints: string[];
     goals: string[];
     promptsSeeded: number;
-}
+};
 
-export interface PromptRecord {
+export type PromptRecord = {
     id: string;
     text: string;
     status: PromptStatus;
@@ -53,9 +55,9 @@ export interface PromptRecord {
     engines: Engine[];
     mentionRate: number;
     createdAt: string;
-}
+};
 
-export interface VisibilityRow {
+export type VisibilityRow = {
     id: string;
     prompt: string;
     engine: Engine;
@@ -66,9 +68,9 @@ export interface VisibilityRow {
     sources: string[];
     createdAt: string;
     sentiment: Sentiment;
-}
+};
 
-export interface CitationRecord {
+export type CitationRecord = {
     id: string;
     engine: Engine;
     sourceDomain: string;
@@ -77,23 +79,23 @@ export interface CitationRecord {
     prompt: string;
     snippet: string;
     date: string;
-}
+};
 
-export interface TimeSeriesPoint {
+export type TimeSeriesPoint = {
     date: string;
     score: number;
     mentions: number;
     citations: number;
-}
+};
 
-export interface ProviderBreakdown {
+export type ProviderBreakdown = {
     engine: Engine;
     mentions: number;
     citations: number;
     share: number;
-}
+};
 
-export interface Competitor {
+export type Competitor = {
     id: string;
     name: string;
     domain: string;
@@ -103,9 +105,9 @@ export interface Competitor {
     velocity: number;
     authority: number;
     mentions30d: number;
-}
+};
 
-export interface ScanRun {
+export type ScanRun = {
     id: string;
     label: string;
     status: ScanStatus;
@@ -117,9 +119,9 @@ export interface ScanRun {
     visibilityScore: number;
     engines: Engine[];
     delta: number;
-}
+};
 
-export interface AuditFinding {
+export type AuditFinding = {
     id: string;
     category: string;
     severity: 'critical' | 'high' | 'medium' | 'low';
@@ -127,9 +129,9 @@ export interface AuditFinding {
     detail: string;
     recommendation: string;
     scoreImpact: number;
-}
+};
 
-export interface GeoAsset {
+export type GeoAsset = {
     id: string;
     name: string;
     kind: 'llms.txt' | 'schema' | 'robots' | 'entity' | 'faq' | 'sitemap';
@@ -138,18 +140,18 @@ export interface GeoAsset {
     updatedAt: string;
     citationLift: string;
     summary: string;
-}
+};
 
-export interface AgxpStage {
+export type AgxpStage = {
     id: string;
     name: string;
     description: string;
     score: number;
     status: 'healthy' | 'watch' | 'gap';
     signals: string[];
-}
+};
 
-export interface ContentBrief {
+export type ContentBrief = {
     id: string;
     title: string;
     status: BriefStatus;
@@ -160,4 +162,4 @@ export interface ContentBrief {
     persona: string;
     outline: string[];
     updatedAt: string;
-}
+};
