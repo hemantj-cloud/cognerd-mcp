@@ -1,5 +1,6 @@
-import { ToolDecorator as Tool, Widget, InitialTool, ExecutionContext, Injectable, z } from '@nitrostack/core';
+import { ToolDecorator as Tool, Widget, InitialTool, ExecutionContext, Injectable, UseGuards, z } from '@nitrostack/core';
 import { CognerdService } from './cognerd.service.js';
+import { OAuthGuard } from '../../guards/oauth.guard.js';
 import {
     AGXP_EXAMPLE,
     AI_INSIGHTS_EXAMPLE,
@@ -77,6 +78,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: AI_INSIGHTS_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     @InitialTool()
     async getAiInsights(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
@@ -92,6 +94,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: AUDIENCE_PERSONAS_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('audience-personas'))
     async getAudiencePersonas(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getAudiencePersonas();
@@ -106,6 +109,7 @@ export class CognerdTools {
         inputSchema: PromptIntelSchema,
         examples: PROMPT_INTELLIGENCE_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('prompt-intelligence'))
     async getPromptIntelligence(args: z.infer<typeof PromptIntelSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getPromptIntelligence(args.status);
@@ -120,6 +124,7 @@ export class CognerdTools {
         inputSchema: VisibilitySchema,
         examples: AI_VISIBILITY_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-visibility'))
     async getAiVisibility(args: z.infer<typeof VisibilitySchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getAiVisibility({
@@ -137,6 +142,7 @@ export class CognerdTools {
         inputSchema: CitationsSchema,
         examples: CITATIONS_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('citations'))
     async getCitations(args: z.infer<typeof CitationsSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getCitations(args.engine);
@@ -151,6 +157,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: COMPETITIVE_INTELLIGENCE_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('competitive-intelligence'))
     async getCompetitiveIntelligence(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getCompetitiveIntelligence();
@@ -165,6 +172,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: SCAN_HISTORY_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('scan-history'))
     async getScanHistory(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getScanHistory();
@@ -179,6 +187,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: AI_READINESS_AUDIT_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
     async getAiReadinessAudit(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getAiReadinessAudit();
@@ -193,6 +202,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: GEO_ASSETS_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('geo-assets'))
     async getGeoAssets(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getGeoAssets();
@@ -207,6 +217,7 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema,
         examples: AGXP_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('agxp'))
     async getAgxp(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getAgxp();
@@ -221,6 +232,7 @@ export class CognerdTools {
         inputSchema: ContentStudioSchema,
         examples: CONTENT_STUDIO_EXAMPLE,
     })
+    @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async getContentStudio(args: z.infer<typeof ContentStudioSchema>, ctx: ExecutionContext) {
         const data = this.cognerd.getContentStudio(args.status);
