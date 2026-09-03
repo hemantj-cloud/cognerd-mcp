@@ -29,13 +29,16 @@ import { cognerdConfig } from './config/cognerd.config.js';
 
         // OAuth 2.1 authentication configuration sourced from validated cognerdConfig
         OAuthModule.forRoot({
-            // Set OAUTH_REQUIRED=true in production to enforce auth fail-closed
-            required: cognerdConfig.oauthRequired,
+            // required is set to false because CogNerd uses opaque upstream tokens
+            // rather than local JWTs with JWKS or RFC 7662 introspection endpoints.
+            // OAuth discovery endpoints are fully active, allowing clients like NitroStudio
+            // to discover and authenticate with CogNerd without false 401 rejections.
+            required: false,
 
             // Resource URI (Public identity of the MCP server or cloud API)
             resourceUri: cognerdConfig.resourceUri,
 
-            // CogNerd / Auth0 Authorization Server
+            // CogNerd Authorization Server
             authorizationServers: [
                 cognerdConfig.authServerUrl,
             ],

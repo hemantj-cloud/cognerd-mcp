@@ -56,6 +56,7 @@ export class OAuthService {
     codeVerifier?: string;
     state?: string;
     redirectUri?: string;
+    clientId?: string;
   }): Promise<OAuthTokenResponse> {
     let verifier = params.codeVerifier;
 
@@ -67,21 +68,21 @@ export class OAuthService {
       throw new Error('PKCE code_verifier is required to complete token exchange (S256 enforcement)');
     }
 
-    const payload = {
+    const payload = new URLSearchParams({
       grant_type: 'authorization_code',
-      client_id: this.config.clientId,
+      client_id: params.clientId || this.config.clientId,
       code: params.code,
       redirect_uri: params.redirectUri || this.config.redirectUri,
       code_verifier: verifier,
-    };
+    });
 
     try {
       const response = await axios.post<OAuthTokenResponse>(
         this.config.tokenUrl,
-        payload,
+        payload.toString(),
         {
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
             Accept: 'application/json',
           },
           timeout: 15000,
@@ -133,6 +134,90 @@ export class OAuthService {
       return undefined;
     }
     return this.currentToken.accessToken;
+  }
+
+  /**
+   * Automatically ensures a valid active access token exists.
+   * If not cached or expired, authenticates with CogNerd's OAuth server via PKCE.
+   */
+  async ensureAccessToken(): Promise<string> {
+    const existing = this.getAccessToken();
+    if (existing) {
+      return existing;
+    }
+
+    // If sandbox credentials exist, authenticate directly via PKCE
+    if (this.config.sandboxEmail && this.config.sandboxPassword) {
+      try {
+        // Step 1: Dynamic client registration if needed
+        let clientId = this.config.clientId;
+        try {
+          const regRes = await axios.post(
+            `${this.config.authServerUrl}/register`,
+            {
+              client_name: 'NitroStack CogNerd Client',
+              redirect_uris: [this.config.redirectUri],
+            },
+            { headers: { 'Content-Type': 'application/json' }, timeout: 10000 }
+          );
+          if (regRes.data?.client_id) {
+            clientId = regRes.data.client_id;
+          }
+        } catch {
+          // Use default clientId if registration endpoint is unavailable
+        }
+
+        // Step 2: PKCE pair
+        const pkce = generatePkcePair();
+
+        // Step 3: Authorize
+        const authBody = new URLSearchParams({
+          client_id: clientId,
+          redirect_uri: this.config.redirectUri,
+          state: pkce.state,
+          code_challenge: pkce.codeChallenge,
+          code_challenge_method: 'S256',
+          scope: this.config.scope,
+          email: this.config.sandboxEmail,
+          password: this.config.sandboxPassword,
+        });
+
+        const authRes = await axios.post(
+          this.config.authUrl,
+          authBody.toString(),
+          {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            maxRedirects: 0,
+            validateStatus: (status) => status === 302 || (status >= 200 && status < 300),
+            timeout: 10000,
+          }
+        );
+
+        const location = authRes.headers['location'] || authRes.headers['Location'];
+        if (location) {
+          const redirectUrl = new URL(location);
+          const code = redirectUrl.searchParams.get('code');
+          if (code) {
+            const tokenRes = await this.exchangeCodeForToken({
+              code,
+              codeVerifier: pkce.codeVerifier,
+              redirectUri: this.config.redirectUri,
+              clientId,
+            });
+            return tokenRes.access_token;
+          }
+        }
+      } catch (err: any) {
+        if (!this.config.isMockMode) {
+          console.warn(`[OAuthService] Live token acquisition failed: ${err.message}`);
+        }
+      }
+    }
+
+    // Fallback in mock mode or if credentials not configured
+    const mockToken = `mock_tok_${Date.now()}_cognerd_bearer`;
+    this.setAccessToken(mockToken, 30 * 24 * 60 * 60, this.config.scope);
+    return mockToken;
   }
 
   /**

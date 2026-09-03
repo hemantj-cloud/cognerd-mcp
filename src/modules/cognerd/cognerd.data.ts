@@ -875,7 +875,7 @@ export function filterCitations(engine?: Engine | 'all'): CitationRecord[] {
     return CITATIONS.filter((c) => c.engine === engine);
 }
 
-export function filterBriefs(status?: BriefStatus): ContentBrief[] {
-    if (!status) return CONTENT_BRIEFS;
+export function filterBriefs(status?: BriefStatus | 'all'): ContentBrief[] {
+    if (!status || (status as any) === 'all') return CONTENT_BRIEFS;
     return CONTENT_BRIEFS.filter((b) => b.status === status);
 }

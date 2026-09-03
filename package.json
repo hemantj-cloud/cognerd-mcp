@@ -9,6 +9,10 @@
     "build": "nitrostack-cli build",
     "start": "npm run build && nitrostack-cli start",
     "start:prod": "nitrostack-cli start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:oauth": "node scripts/test-oauth-flow.js",
+    "test:local": "node scripts/test-local-oauth.js",
     "upgrade": "nitrostack-cli upgrade",
     "install:all": "nitrostack-cli install",
     "widget": "npm --prefix src/widgets"
@@ -24,16 +28,17 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": ">=0.1.0",
     "@nitrostack/core": "^1.0.15",
     "axios": "^1.7.9",
-    "zod": "^3.24.1",
     "dotenv": "^16.4.7",
-    "@modelcontextprotocol/ext-apps": ">=0.1.0"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@nitrostack/cli": "^1.0.15",
     "@types/node": "^22.10.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.11"
   },
   "nitrostack": {
     "skillsVersion": "1.0.0"

@@ -11,7 +11,7 @@
  */
 
 import 'dotenv/config';
-import { McpApplicationFactory } from '@nitrostack/core';
+import { DIContainer, McpApplicationFactory, OAuthModule } from '@nitrostack/core';
 import { AppModule } from './app.module.js';
 import { cognerdConfig } from './config/cognerd.config.js';
 
@@ -28,6 +28,13 @@ async function bootstrap() {
 
         // Create the MCP application
         const server = await McpApplicationFactory.create(AppModule);
+
+        if (!OAuthModule.getConfig()) {
+            DIContainer.getInstance().registerValue(
+                OAuthModule,
+                Object.create(null) as OAuthModule,
+            );
+        }
 
         // Start the server
         await server.start();
