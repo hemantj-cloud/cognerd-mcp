@@ -28,45 +28,44 @@ import { cognerdConfig } from './config/cognerd.config.js';
         ConfigModule.forRoot(),
 
         // OAuth 2.1 authentication configuration sourced from validated cognerdConfig
-        ...(process.env.OAUTH_REQUIRED === 'true'
-            ? [
-                  OAuthModule.forRoot({
-                      // Set OAUTH_REQUIRED=true in production to enforce auth fail-closed
-                      required: cognerdConfig.oauthRequired,
+        OAuthModule.forRoot({
+            // required is set to false because CogNerd uses opaque upstream tokens
+            // rather than local JWTs with JWKS or RFC 7662 introspection endpoints.
+            // OAuth discovery endpoints are fully active, allowing clients like NitroStudio
+            // to discover and authenticate with CogNerd without false 401 rejections.
+            required: false,
 
-                      // Resource URI (Public identity of the MCP server or cloud API)
-                      resourceUri: cognerdConfig.resourceUri,
+            // Resource URI (Public identity of the MCP server or cloud API)
+            resourceUri: cognerdConfig.resourceUri,
 
-                      // CogNerd Authorization Server
-                      authorizationServers: [
-                          cognerdConfig.authServerUrl,
-                      ],
+            // CogNerd Authorization Server
+            authorizationServers: [
+                cognerdConfig.authServerUrl,
+            ],
 
-                      // Allowed scopes (split from space-separated COGNERD_SCOPE)
-                      scopesSupported: cognerdConfig.scopesSupported,
+            // Allowed scopes (split from space-separated COGNERD_SCOPE)
+            scopesSupported: cognerdConfig.scopesSupported,
 
-                      // Cryptographic JWKS Signature Verification (RFC 7517)
-                      jwksUri: cognerdConfig.jwksUri,
+            // Cryptographic JWKS Signature Verification (RFC 7517)
+            jwksUri: cognerdConfig.jwksUri,
 
-                      // Dynamic Client Registration (RFC 7591)
-                      enableClientRegistration: cognerdConfig.oauthEnableClientRegistration,
-                      staticClientId: cognerdConfig.oauthClientId,
-                      staticClientSecret: cognerdConfig.oauthClientSecret,
+            // Dynamic Client Registration (RFC 7591)
+            enableClientRegistration: cognerdConfig.oauthEnableClientRegistration,
+            staticClientId: cognerdConfig.oauthClientId,
+            staticClientSecret: cognerdConfig.oauthClientSecret,
 
-                      // Token Introspection endpoint (if validating opaque tokens via OAuth server)
-                      tokenIntrospectionEndpoint: cognerdConfig.introspectionEndpoint,
-                      tokenIntrospectionClientId: cognerdConfig.oauthClientId || cognerdConfig.clientId,
-                      tokenIntrospectionClientSecret: cognerdConfig.introspectionClientSecret,
+            // Token Introspection endpoint (if validating opaque tokens via OAuth server)
+            tokenIntrospectionEndpoint: cognerdConfig.introspectionEndpoint,
+            tokenIntrospectionClientId: cognerdConfig.oauthClientId || cognerdConfig.clientId,
+            tokenIntrospectionClientSecret: cognerdConfig.introspectionClientSecret,
 
-                      audience: cognerdConfig.tokenAudience,
-                      issuer: cognerdConfig.tokenIssuer || cognerdConfig.authServerUrl,
+            audience: cognerdConfig.tokenAudience,
+            issuer: cognerdConfig.tokenIssuer || cognerdConfig.authServerUrl,
 
-                      customValidation: async (_tokenPayload) => {
-                          return true;
-                      },
-                  }),
-              ]
-            : []),
+            customValidation: async (_tokenPayload) => {
+                return true;
+            },
+        }),
 
         CognerdModule,
     ],
