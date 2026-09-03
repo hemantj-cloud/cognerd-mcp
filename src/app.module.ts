@@ -37,7 +37,7 @@ import { cognerdConfig } from './config/cognerd.config.js';
                       // Resource URI (Public identity of the MCP server or cloud API)
                       resourceUri: cognerdConfig.resourceUri,
 
-                      // CogNerd / Auth0 Authorization Server
+                      // CogNerd Authorization Server
                       authorizationServers: [
                           cognerdConfig.authServerUrl,
                       ],

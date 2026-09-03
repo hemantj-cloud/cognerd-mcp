@@ -11,6 +11,8 @@
     "start:prod": "nitrostack-cli start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:oauth": "node scripts/test-oauth-flow.js",
+    "test:local": "node scripts/test-local-oauth.js",
     "upgrade": "nitrostack-cli upgrade",
     "install:all": "nitrostack-cli install",
     "widget": "npm --prefix src/widgets"

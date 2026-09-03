@@ -45,7 +45,7 @@ const EnvSchema = z.object({
     .string()
     .url('COGNERD_API_BASE_URL must be a valid URL')
     .optional()
-    .default('https://api.cognerd.ai'),
+    .default('https://mcp-185-131-53-177.sslip.io'),
   COGNERD_CLIENT_ID: z.string().optional(),
   COGNERD_AUTH_URL: z
     .string()
@@ -59,8 +59,8 @@ const EnvSchema = z.object({
     .string()
     .url('COGNERD_REDIRECT_URI must be a valid URL')
     .optional()
-    .default('https://mcp.nitrostack.dev/oauth/callback'),
-  COGNERD_SCOPE: z.string().optional().default('read:visibility write:visibility admin'),
+    .default('http://localhost:3005/auth/callback'),
+  COGNERD_SCOPE: z.string().optional().default('cognerd'),
   COGNERD_ACCESS_TOKEN: z.string().optional(),
   COGNERD_MOCK_MODE: z
     .enum(['true', 'false'])
@@ -117,8 +117,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CognerdConfig 
 
   const parsed = result.data;
   const clientId = parsed.COGNERD_CLIENT_ID || parsed.OAUTH_CLIENT_ID || 'nitrostack_mcp';
-  const authUrl = parsed.COGNERD_AUTH_URL || `${parsed.AUTH_SERVER_URL}/oauth/authorize`;
-  const tokenUrl = parsed.COGNERD_TOKEN_URL || `${parsed.AUTH_SERVER_URL}/oauth/token`;
+  const authUrl = parsed.COGNERD_AUTH_URL || `${parsed.AUTH_SERVER_URL}/authorize`;
+  const tokenUrl = parsed.COGNERD_TOKEN_URL || `${parsed.AUTH_SERVER_URL}/token`;
   const clientSecret = parsed.OAUTH_CLIENT_SECRET || parsed.INTROSPECTION_CLIENT_SECRET;
 
   return Object.freeze({
@@ -127,7 +127,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CognerdConfig 
     oauthRequired: parsed.OAUTH_REQUIRED ?? false,
     jwksUri: parsed.JWKS_URI,
     tokenAudience: parsed.TOKEN_AUDIENCE || parsed.RESOURCE_URI,
-    tokenIssuer: parsed.TOKEN_ISSUER || (parsed.AUTH_SERVER_URL ? `${parsed.AUTH_SERVER_URL}/` : undefined),
+    tokenIssuer: parsed.TOKEN_ISSUER || parsed.AUTH_SERVER_URL,
     oauthEnableClientRegistration: parsed.OAUTH_ENABLE_CLIENT_REGISTRATION ?? false,
     oauthClientId: parsed.OAUTH_CLIENT_ID,
     oauthClientSecret: clientSecret,
