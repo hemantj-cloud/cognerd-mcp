@@ -1,4 +1,5 @@
 import { Injectable } from '@nitrostack/core';
+import { CognerdApiClient } from '../../services/cognerd-api.client.js';
 import {
     AGXP_STAGES,
     AUDIT_FINDINGS,
@@ -21,39 +22,88 @@ import {
     filterPrompts,
     filterVisibility,
 } from './cognerd.data.js';
-import type { BriefStatus, Engine } from './cognerd.types.js';
+import type { Brand, BriefStatus, Engine } from './cognerd.types.js';
 
-@Injectable()
+@Injectable({ deps: [CognerdApiClient] })
 export class CognerdService {
-    getBrand() {
+    constructor(private readonly apiClient: CognerdApiClient) {}
+
+    async getBrand(_brandId?: string) {
         return BRAND;
     }
 
-    getAudiencePersonas() {
+    async whoami() {
+        const live = await this.apiClient.callTool('whoami');
+        if (live) return live;
         return {
-            brand: BRAND,
+            user: { id: '113', name: 'Nitrostack Partner', email: 'nitrostack.sandbox@cognerd.ai' },
+            brands: [{ id: '8fd53305-fdfc-4825-b4b1-bc64233d46d7', name: 'CogNerd', url: 'https://www.cognerd.ai' }],
+            scopes: ['cognerd:full'],
+            credits: { balance: 410, reserved: 0, draftArticleCost: 30 },
+        };
+    }
+
+    async getCreditBalance() {
+        const live = await this.apiClient.callTool('get_credit_balance');
+        if (live) return live;
+        return { balance: 410, reserved: 0, draftArticleCost: 30 };
+    }
+
+    async getAudiencePersonas(brandId?: string) {
+        const liveContext = await this.apiClient.callTool('get_brand_context', brandId ? { brand_id: brandId } : {});
+        const brand: Brand = liveContext?.brand
+            ? {
+                  id: liveContext.brand.id || BRAND.id,
+                  name: liveContext.brand.name || BRAND.name,
+                  domain: liveContext.brand.url ? liveContext.brand.url.replace(/^https?:\/\//, '') : BRAND.domain,
+                  industry: liveContext.brand.industry || BRAND.industry,
+                  workspace: BRAND.workspace,
+                  description: liveContext.brand.description || BRAND.description,
+                  credits: BRAND.credits,
+              }
+            : BRAND;
+
+        return {
+            brand,
             icp: ICP_INPUTS,
             personas: PERSONAS,
             totalPersonas: PERSONAS.length,
         };
     }
 
-    getPromptIntelligence(status?: 'new' | 'active' | 'archived') {
-        const prompts = filterPrompts(status);
+    async getPromptIntelligence(status?: 'new' | 'active' | 'archived', brandId?: string) {
+        const liveWeak = await this.apiClient.callTool('get_weak_prompts', brandId ? { brand_id: brandId } : {});
+        let prompts = filterPrompts(status);
+
+        if (liveWeak?.prompts && Array.isArray(liveWeak.prompts) && liveWeak.prompts.length > 0) {
+            const mappedPrompts = liveWeak.prompts.map((p: any, idx: number) => ({
+                id: p.promptKey || `live-p-${idx + 1}`,
+                text: p.promptText || p.text || 'Prompt',
+                category: 'buyer_intent',
+                status: (p.status || 'new') as 'new' | 'active' | 'archived',
+                engineCoverage: p.providers || ['ChatGPT', 'Claude', 'Perplexity'],
+                volumeScore: 85 - idx * 4,
+                intent: 'High Intent Comparison',
+            }));
+            prompts = status && status !== ('all' as any)
+                ? mappedPrompts.filter((p: any) => p.status === status)
+                : mappedPrompts;
+        }
+
         return {
             brand: BRAND,
             status: status ?? 'all',
             counts: {
-                new: PROMPTS.filter((p) => p.status === 'new').length,
-                active: PROMPTS.filter((p) => p.status === 'active').length,
-                archived: PROMPTS.filter((p) => p.status === 'archived').length,
+                new: prompts.filter((p) => p.status === 'new').length,
+                active: prompts.filter((p) => p.status === 'active').length,
+                archived: prompts.filter((p) => p.status === 'archived').length,
             },
             prompts,
             totalPrompts: prompts.length,
         };
     }
 
-    getAiVisibility(filters: {
+    async getAiVisibility(filters: {
         engine?: Engine | 'all';
         mentioned?: 'all' | 'mentioned' | 'cited' | 'not_mentioned';
     }) {
@@ -89,7 +139,7 @@ export class CognerdService {
         };
     }
 
-    getCitations(engine?: Engine | 'all') {
+    async getCitations(engine?: Engine | 'all') {
         const rows = filterCitations(engine);
         const owned = CITATIONS.filter((c) => c.owned).length;
         const domains = new Set(CITATIONS.map((c) => c.sourceDomain)).size;
@@ -120,7 +170,7 @@ export class CognerdService {
         };
     }
 
-    getAiInsights() {
+    async getAiInsights() {
         const latest = TREND[TREND.length - 1];
         return {
             brand: BRAND,
@@ -140,7 +190,7 @@ export class CognerdService {
         };
     }
 
-    getCompetitiveIntelligence() {
+    async getCompetitiveIntelligence() {
         return {
             brand: BRAND,
             you: COMPETITORS[0],
@@ -151,26 +201,28 @@ export class CognerdService {
         };
     }
 
-    getScanHistory() {
+    async getScanHistory() {
+        const liveHistory = await this.apiClient.callTool('get_brand_history');
         const completed = SCAN_RUNS.filter((r) => r.status === 'completed');
         return {
             brand: BRAND,
-            runs: SCAN_RUNS,
-            totalRuns: SCAN_RUNS.length,
+            runs: liveHistory?.runs || SCAN_RUNS,
+            totalRuns: liveHistory?.runs?.length || SCAN_RUNS.length,
             completedRuns: completed.length,
             latestScore: completed[0]?.visibilityScore ?? null,
         };
     }
 
-    getAiReadinessAudit() {
-        const base = 76;
+    async getAiReadinessAudit() {
+        const liveAudit = await this.apiClient.callTool('get_audit_report');
+        const base = liveAudit?.score || 76;
         return {
             brand: BRAND,
             score: base,
-            grade: 'B',
-            crawledAt: '2026-08-23T11:40:00.000Z',
-            pagesCrawled: 86,
-            categories: [
+            grade: liveAudit?.grade || 'B',
+            crawledAt: liveAudit?.crawledAt || '2026-08-23T11:40:00.000Z',
+            pagesCrawled: liveAudit?.pagesCrawled || 86,
+            categories: liveAudit?.categories || [
                 { name: 'Entity clarity', score: 71 },
                 { name: 'Schema', score: 48 },
                 { name: 'Chunk structure', score: 74 },
@@ -183,18 +235,20 @@ export class CognerdService {
         };
     }
 
-    getGeoAssets() {
+    async getGeoAssets() {
+        const liveGeo = await this.apiClient.callTool('get_geo_assets');
+        const assets = liveGeo?.assets || GEO_ASSETS;
         return {
             brand: BRAND,
-            assets: GEO_ASSETS,
-            totalAssets: GEO_ASSETS.length,
-            published: GEO_ASSETS.filter((a) => a.status === 'published').length,
-            drafts: GEO_ASSETS.filter((a) => a.status === 'draft').length,
-            needsRefresh: GEO_ASSETS.filter((a) => a.status === 'needs_refresh').length,
+            assets,
+            totalAssets: assets.length,
+            published: assets.filter((a: any) => a.status === 'published').length,
+            drafts: assets.filter((a: any) => a.status === 'draft').length,
+            needsRefresh: assets.filter((a: any) => a.status === 'needs_refresh').length,
         };
     }
 
-    getAgxp() {
+    async getAgxp() {
         const avg = Math.round(
             AGXP_STAGES.reduce((sum, s) => sum + s.score, 0) / AGXP_STAGES.length,
         );
@@ -206,7 +260,7 @@ export class CognerdService {
         };
     }
 
-    getContentStudio(status?: BriefStatus) {
+    async getContentStudio(status?: BriefStatus) {
         const briefs = filterBriefs(status);
         return {
             brand: BRAND,
