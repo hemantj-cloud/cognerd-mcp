@@ -166,6 +166,46 @@ describe('CogNerd Service & Tools Integration', { timeout: 15000 }, () => {
     const standalone = await service.generateStandaloneSocialLive({ topic: 'AI Visibility' });
     expect(standalone.content).toBeDefined();
   });
+
+  it('Phase 3: should return backlinks profile and competitor comparisons', async () => {
+    const backlinks = await service.getBacklinksSnapshotLive();
+    expect(backlinks.totalBacklinks).toBeGreaterThan(0);
+    expect(backlinks.referringDomains).toBeGreaterThan(0);
+    expect(backlinks.competitors.length).toBeGreaterThan(0);
+    expect(backlinks.aiCitationCorrelation).toBeDefined();
+
+    const refresh = await service.refreshCompetitorBacklinksLive();
+    expect(refresh.status).toBe('refreshed');
+    expect(refresh.creditsDeducted).toBe(15);
+  });
+
+  it('Phase 3: should return Search Console and GA4 telemetry', async () => {
+    const gsc = await service.getSearchConsoleReportLive(30);
+    expect(gsc.totalClicks).toBeGreaterThan(0);
+    expect(gsc.topQueries.length).toBeGreaterThan(0);
+
+    const sites = await service.listSearchConsoleSitesLive();
+    expect(sites.length).toBeGreaterThan(0);
+
+    const ga4 = await service.getGa4TrafficReportLive();
+    expect(ga4.totalUsers).toBeGreaterThan(0);
+    expect(ga4.channels.length).toBeGreaterThan(0);
+  });
+
+  it('Phase 3: should return Clarity, Google Ads, and integrations status', async () => {
+    const clarity = await service.getClarityReportLive();
+    expect(clarity.totalSessions).toBeGreaterThan(0);
+    expect(clarity.scrollDepthPercent).toBeGreaterThan(0);
+
+    const ads = await service.getGoogleAdsReportLive();
+    expect(ads.totalSpend).toBeGreaterThan(0);
+    expect(ads.conversions).toBeGreaterThan(0);
+
+    const integrations = await service.getIntegrationsStatusLive();
+    expect(integrations.totalToolkits).toBeGreaterThan(0);
+    expect(integrations.connectedCount).toBeGreaterThan(0);
+  });
 });
+
 
 

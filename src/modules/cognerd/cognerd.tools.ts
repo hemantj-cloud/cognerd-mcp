@@ -570,6 +570,125 @@ export class CognerdTools {
         ctx.logger.info('Standalone social', { topic: data.topic, platform: data.platform });
         return data;
     }
+
+    // =========================================================================
+    // Phase 3: Deep Telemetry, Backlinks & Live Integrations Tools
+    // =========================================================================
+
+    @Tool({
+        name: 'get_backlinks_snapshot',
+        description:
+            'Retrieves DataForSEO backlink profile, referring domains, domain rank, and competitor backlink comparisons for the brand.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('competitive-intelligence'))
+    async getBacklinksSnapshot(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getBacklinksSnapshotLive(args.brandId);
+        ctx.logger.info('Get backlinks snapshot', { domain: data.brandDomain, backlinks: data.totalBacklinks });
+        return data;
+    }
+
+    @Tool({
+        name: 'refresh_competitor_backlinks',
+        description:
+            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors (5 credits per competitor).',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('competitive-intelligence'))
+    async refreshCompetitorBacklinks(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.refreshCompetitorBacklinksLive(args.brandId);
+        ctx.logger.info('Refresh backlinks', { crawled: data.competitorsCrawled, credits: data.creditsDeducted });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_search_console_report',
+        description:
+            'Pulls live Google Search Console telemetry: organic clicks, impressions, CTR, and ranking queries for the brand domain.',
+        inputSchema: BrandScopeSchema.extend({
+            days: z.number().min(7).max(90).optional().default(30).describe('Time window in days (default: 30).'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async getSearchConsoleReport(args: { brandId?: string; days?: number }, ctx: ExecutionContext) {
+        const data = await this.cognerd.getSearchConsoleReportLive(args.days, args.brandId);
+        ctx.logger.info('Search Console report', { clicks: data.totalClicks, impressions: data.totalImpressions });
+        return data;
+    }
+
+    @Tool({
+        name: 'list_search_console_sites',
+        description:
+            'Lists verified Google Search Console site properties connected to the workspace.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async listSearchConsoleSites(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.listSearchConsoleSitesLive(args.brandId);
+        ctx.logger.info('List GSC sites', { total: Array.isArray(data) ? data.length : 1 });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_ga4_traffic_report',
+        description:
+            'Retrieves Google Analytics 4 traffic channels, session lengths, user engagement, and AI assistant referral shares.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async getGa4TrafficReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getGa4TrafficReportLive(args.brandId);
+        ctx.logger.info('GA4 report', { users: data.totalUsers, sessions: data.sessions });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_clarity_heatmaps',
+        description:
+            'Retrieves Microsoft Clarity user experience telemetry: scroll depth, rage clicks, dead clicks, and quick backs.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async getClarityHeatmaps(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getClarityReportLive(args.brandId);
+        ctx.logger.info('Clarity report', { sessions: data.totalSessions, scrollDepth: data.scrollDepthPercent });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_google_ads_report',
+        description:
+            'Retrieves paid search campaign performance, impressions, ad spend, and conversion cost metrics.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async getGoogleAdsReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getGoogleAdsReportLive(args.brandId);
+        ctx.logger.info('Google Ads report', { spend: data.totalSpend, conversions: data.conversions });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_integrations_status',
+        description:
+            'Checks connection and authentication status for all third-party toolkits (GSC, GA4, Clarity, LinkedIn, Slack, WordPress).',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async getIntegrationsStatus(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getIntegrationsStatusLive(args.brandId);
+        ctx.logger.info('Integrations status', { connected: data.connectedCount, total: data.totalToolkits });
+        return data;
+    }
 }
+
 
 

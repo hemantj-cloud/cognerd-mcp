@@ -296,4 +296,99 @@ export type RewriteParagraphResult = {
     improvements: string[];
 };
 
+export type BacklinkSummary = {
+    brandId: string;
+    brandDomain: string;
+    totalBacklinks: number;
+    referringDomains: number;
+    domainRank: number;
+    competitors: Array<{
+        domain: string;
+        backlinks: number;
+        referringDomains: number;
+        relativeStrength: string;
+    }>;
+    aiCitationCorrelation: {
+        backlinkAuthorityScore: number;
+        citationCoverageRate: number;
+        verdict: string;
+    };
+    updatedAt: string;
+};
+
+export type SearchConsoleReport = {
+    connected: boolean;
+    siteUrl: string;
+    days: number;
+    totalClicks: number;
+    totalImpressions: number;
+    averageCtr: number;
+    averagePosition: number;
+    topQueries: Array<{
+        query: string;
+        clicks: number;
+        impressions: number;
+        ctr: number;
+        position: number;
+    }>;
+    updatedAt: string;
+};
+
+export type Ga4TrafficReport = {
+    connected: boolean;
+    propertyId: string;
+    totalUsers: number;
+    sessions: number;
+    engagementRate: number;
+    conversions: number;
+    channels: Array<{
+        channel: string;
+        sessions: number;
+        share: number;
+    }>;
+    updatedAt: string;
+};
+
+export type ClarityReport = {
+    connected: boolean;
+    projectId: string;
+    totalSessions: number;
+    pagesPerSession: number;
+    scrollDepthPercent: number;
+    deadClickRate: number;
+    rageClickRate: number;
+    quickBackRate: number;
+    updatedAt: string;
+};
+
+export type GoogleAdsReport = {
+    connected: boolean;
+    currency: string;
+    totalSpend: number;
+    impressions: number;
+    clicks: number;
+    conversions: number;
+    costPerConversion: number;
+    campaignsCount: number;
+    updatedAt: string;
+};
+
+export type ToolkitStatus = {
+    toolkit: string;
+    name: string;
+    category: string;
+    connected: boolean;
+    authType: string;
+    lastSyncedAt?: string;
+    destinationConfigured?: boolean;
+};
+
+export type IntegrationsStatus = {
+    brandId: string;
+    totalToolkits: number;
+    connectedCount: number;
+    toolkits: ToolkitStatus[];
+};
+
+
 
