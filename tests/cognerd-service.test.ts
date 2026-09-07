@@ -85,4 +85,44 @@ describe('CogNerd Service & Tools Integration', { timeout: 15000 }, () => {
     const studio = await service.getContentStudio('all');
     expect(studio.totalBriefs).toBeGreaterThan(0);
   });
+
+  it('Phase 1: should generate GEO assets bundle', async () => {
+    const geoJob = await service.generateGeoAssetsLive();
+    expect(geoJob.jobId).toBeDefined();
+    expect(geoJob.assets.length).toBeGreaterThan(0);
+    expect(geoJob.status).toBe('completed');
+  });
+
+  it('Phase 1: should trigger AEO audit and fetch latest report', async () => {
+    const aeo = await service.triggerAeoAuditLive();
+    expect(aeo.score).toBeGreaterThan(0);
+    expect(aeo.findings.length).toBeGreaterThan(0);
+
+    const report = await service.getLatestAeoReport();
+    expect(report.score).toBeGreaterThan(0);
+  });
+
+  it('Phase 1: should return technical site diagnostics', async () => {
+    const diag = await service.getTechnicalDiagnostics();
+    expect(diag.status).toBe('healthy');
+    expect(diag.crawlability.llmsTxt).toBe(true);
+    expect(diag.aiEngineAccess.gptBot).toBe(true);
+  });
+
+  it('Phase 1: should generate ICP and suggest buyer personas', async () => {
+    const icp = await service.generateIcpLive();
+    expect(icp.icp).toBeDefined();
+    expect(icp.personas.length).toBeGreaterThan(0);
+    expect(icp.creditsDeducted).toBe(6);
+
+    const suggested = await service.suggestPersonasLive({ industry: 'AI' });
+    expect(suggested.personas.length).toBeGreaterThan(0);
+  });
+
+  it('Phase 1: should manage tracked competitors', async () => {
+    const compResult = await service.manageCompetitorLive('list');
+    expect(compResult.totalCompetitors).toBeGreaterThan(0);
+    expect(compResult.competitors.length).toBeGreaterThan(0);
+  });
 });
+

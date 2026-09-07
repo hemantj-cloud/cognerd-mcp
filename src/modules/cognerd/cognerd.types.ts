@@ -163,3 +163,71 @@ export type ContentBrief = {
     outline: string[];
     updatedAt: string;
 };
+
+export type GeoAssetJobResult = {
+    jobId: string;
+    brandId: string;
+    status: 'completed' | 'queued' | 'running' | 'failed';
+    assets: GeoAsset[];
+    totalAssets: number;
+    downloadUrl?: string;
+    summary?: string;
+    message?: string;
+};
+
+export type AeoAuditReport = {
+    brand: Brand;
+    score: number;
+    grade: string;
+    crawledAt: string;
+    pagesCrawled: number;
+    categories: Array<{ name: string; score: number }>;
+    findings: AuditFinding[];
+    critical: number;
+    high: number;
+    status?: string;
+    jobId?: string;
+};
+
+export type SiteDiagnostics = {
+    brand: Brand;
+    domain: string;
+    status: 'healthy' | 'warning' | 'error';
+    crawlability: {
+        robotsTxt: boolean;
+        sitemapXml: boolean;
+        llmsTxt: boolean;
+        schemaOrgDetected: boolean;
+    };
+    aiEngineAccess: {
+        gptBot: boolean;
+        claudeBot: boolean;
+        perplexityBot: boolean;
+        googleOther: boolean;
+    };
+    latencyMs: number;
+    lastChecked: string;
+    issues: string[];
+};
+
+export type IcpGenerationResult = {
+    brand: Brand;
+    icp: IcpInputs;
+    personas: Persona[];
+    suggestedTopics: string[];
+    creditsDeducted?: number;
+    status: 'success' | 'queued';
+};
+
+export type CompetitorOperationResult = {
+    brandId: string;
+    action: 'added' | 'removed' | 'list';
+    competitor: {
+        name: string;
+        url: string;
+        aliases?: string[];
+    };
+    totalCompetitors: number;
+    competitors: Array<{ name: string; url: string; aliases?: string[] }>;
+};
+

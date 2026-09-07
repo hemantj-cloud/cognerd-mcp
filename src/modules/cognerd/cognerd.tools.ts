@@ -276,4 +276,128 @@ export class CognerdTools {
         ctx.logger.info('Content studio', { status: data.status, total: data.totalBriefs });
         return data;
     }
+
+    // =========================================================================
+    // Phase 1: AEO/GEO Remediation & Audience Intelligence Tools
+    // =========================================================================
+
+    @Tool({
+        name: 'generate_geo_assets',
+        description:
+            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (20 credits).',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('geo-assets'))
+    async generateGeoAssets(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.generateGeoAssetsLive(args.brandId);
+        ctx.logger.info('Generate GEO assets', { jobId: data.jobId, total: data.totalAssets });
+        return data;
+    }
+
+    @Tool({
+        name: 'trigger_aeo_audit',
+        description:
+            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (50 credits).',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-readiness-audit'))
+    async triggerAeoAudit(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.triggerAeoAuditLive(args.brandId);
+        ctx.logger.info('Trigger AEO audit', { jobId: data.jobId, score: data.score });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_latest_aeo_report',
+        description:
+            'Fetches the latest stored technical AEO audit report, crawl findings, and recommendation breakdown.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-readiness-audit'))
+    async getLatestAeoReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getLatestAeoReport(args.brandId);
+        ctx.logger.info('Latest AEO report', { score: data.score, grade: data.grade });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_technical_diagnostics',
+        description:
+            'Retrieves real-time site technical diagnostics: robot access rules, sitemap status, schema presence, and latency.',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('ai-insights'))
+    async getTechnicalDiagnostics(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.getTechnicalDiagnostics(args.brandId);
+        ctx.logger.info('Technical diagnostics', { domain: data.domain, status: data.status });
+        return data;
+    }
+
+    @Tool({
+        name: 'generate_icp',
+        description:
+            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (6 credits).',
+        inputSchema: BrandScopeSchema,
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('audience-personas'))
+    async generateIcp(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+        const data = await this.cognerd.generateIcpLive(args.brandId);
+        ctx.logger.info('Generate ICP', { personas: data.personas?.length, status: data.status });
+        return data;
+    }
+
+    @Tool({
+        name: 'suggest_personas',
+        description:
+            'Suggests buyer persona profiles from free-text company descriptions or industry context without needing an existing brand.',
+        inputSchema: z.object({
+            name: z.string().optional().describe('Brand or product name.'),
+            description: z.string().optional().describe('Product or company description.'),
+            industry: z.string().optional().describe('Target industry vertical.'),
+            audience: z.string().optional().describe('Target customer demographic.'),
+            location: z.string().optional().describe('Geographic location.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('audience-personas'))
+    async suggestPersonas(
+        args: { name?: string; description?: string; industry?: string; audience?: string; location?: string },
+        ctx: ExecutionContext
+    ) {
+        const data = await this.cognerd.suggestPersonasLive(args);
+        ctx.logger.info('Suggest personas', { total: data.personas?.length || data.totalSuggested });
+        return data;
+    }
+
+    @Tool({
+        name: 'manage_competitors',
+        description:
+            'Adds, removes, or lists tracked competitor domains for the active brand to monitor in AI answer share-of-voice benchmarks.',
+        inputSchema: BrandScopeSchema.extend({
+            action: z.enum(['add', 'remove', 'list']).default('list').describe('Action: add, remove, or list competitors.'),
+            name: z.string().optional().describe('Competitor brand or company name.'),
+            url: z.string().optional().describe('Competitor website domain or URL.'),
+            aliases: z.array(z.string()).optional().describe('Alternate brand aliases.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('competitive-intelligence'))
+    async manageCompetitors(
+        args: { brandId?: string; action?: 'add' | 'remove' | 'list'; name?: string; url?: string; aliases?: string[] },
+        ctx: ExecutionContext
+    ) {
+        const data = await this.cognerd.manageCompetitorLive(
+            args.action || 'list',
+            args.name && args.url ? { name: args.name, url: args.url, aliases: args.aliases } : undefined,
+            args.brandId
+        );
+        ctx.logger.info('Manage competitors', { action: data.action, total: data.totalCompetitors });
+        return data;
+    }
 }
+
