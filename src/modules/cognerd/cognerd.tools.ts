@@ -399,5 +399,177 @@ export class CognerdTools {
         ctx.logger.info('Manage competitors', { action: data.action, total: data.totalCompetitors });
         return data;
     }
+
+    // =========================================================================
+    // Phase 2: Content Studio & Multi-Channel Social Engine Tools
+    // =========================================================================
+
+    @Tool({
+        name: 'generate_linkedin_carousel',
+        description:
+            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (15 credits).',
+        inputSchema: BrandScopeSchema.extend({
+            topic: z.string().describe('Topic or thesis of the carousel deck.'),
+            targetAudience: z.string().optional().describe('Target customer demographic (e.g. CTOs, Growth Leads).'),
+            slideCount: z.number().min(3).max(12).optional().default(6).describe('Number of slides (default: 6).'),
+            theme: z.enum(['minimal', 'bold', 'dark', 'corporate']).optional().default('bold').describe('Visual theme.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async generateLinkedinCarousel(
+        args: { brandId?: string; topic: string; targetAudience?: string; slideCount?: number; theme?: 'minimal' | 'bold' | 'dark' | 'corporate' },
+        ctx: ExecutionContext
+    ) {
+        const data = await this.cognerd.generateCarouselLive(args);
+        ctx.logger.info('Generate carousel', { id: data.id, slides: data.slideCount });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_carousel_deck',
+        description:
+            'Retrieves full slide copy, layouts, and theme configuration for an existing carousel deck by ID.',
+        inputSchema: z.object({
+            deckId: z.string().describe('Carousel deck ID.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async getCarouselDeck(args: { deckId: string }, ctx: ExecutionContext) {
+        const data = await this.cognerd.getCarouselDeckLive(args.deckId);
+        ctx.logger.info('Get carousel deck', { id: data.id, title: data.title });
+        return data;
+    }
+
+    @Tool({
+        name: 'rerender_carousel',
+        description:
+            'Re-renders carousel slide designs after text or theme edits (free operation).',
+        inputSchema: z.object({
+            deckId: z.string().describe('Carousel deck ID to re-render.'),
+            theme: z.enum(['minimal', 'bold', 'dark', 'corporate']).optional().describe('Updated visual theme.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async rerenderCarousel(args: { deckId: string; theme?: 'minimal' | 'bold' | 'dark' | 'corporate' }, ctx: ExecutionContext) {
+        const data = await this.cognerd.rerenderCarouselLive(args.deckId, { theme: args.theme });
+        ctx.logger.info('Rerender carousel', { id: data.id, status: data.status });
+        return data;
+    }
+
+    @Tool({
+        name: 'start_guided_article_wizard',
+        description:
+            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (30 credits).',
+        inputSchema: BrandScopeSchema.extend({
+            targetPrompt: z.string().describe('Buyer prompt or comparison query to target.'),
+            title: z.string().optional().describe('Proposed article working title.'),
+            persona: z.string().optional().describe('Target buyer persona.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async startGuidedArticleWizard(
+        args: { brandId?: string; targetPrompt: string; title?: string; persona?: string },
+        ctx: ExecutionContext
+    ) {
+        const data = await this.cognerd.startArticleWizardLive(args);
+        ctx.logger.info('Start article wizard', { id: data.id, status: data.status });
+        return data;
+    }
+
+    @Tool({
+        name: 'run_article_wizard_step',
+        description:
+            'Executes a specific step of the guided article wizard: outline, research facts, draft copy, or firewall check.',
+        inputSchema: z.object({
+            projectId: z.string().describe('Article project ID.'),
+            step: z.enum(['outline', 'research', 'draft', 'firewall']).describe('Wizard step to execute.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async runArticleWizardStep(args: { projectId: string; step: 'outline' | 'research' | 'draft' | 'firewall' }, ctx: ExecutionContext) {
+        const data = await this.cognerd.runArticleWizardStepLive(args.projectId, args.step);
+        ctx.logger.info('Run wizard step', { projectId: data.projectId, step: data.stepCompleted });
+        return data;
+    }
+
+    @Tool({
+        name: 'finalize_article_to_blog',
+        description:
+            'Finalizes an article project and publishes it to the brand blog document library.',
+        inputSchema: z.object({
+            projectId: z.string().describe('Article project ID.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async finalizeArticleToBlog(args: { projectId: string }, ctx: ExecutionContext) {
+        const data = await this.cognerd.finalizeArticleToBlogLive(args.projectId);
+        ctx.logger.info('Finalize article', { projectId: data.projectId, status: data.status });
+        return data;
+    }
+
+    @Tool({
+        name: 'repurpose_article_to_social',
+        description:
+            'Generates high-engagement LinkedIn posts and Twitter/X threads from an existing article or content project.',
+        inputSchema: z.object({
+            projectIdOrTopic: z.string().describe('Article project ID or topic string.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async repurposeArticleToSocial(args: { projectIdOrTopic: string }, ctx: ExecutionContext) {
+        const data = await this.cognerd.repurposeArticleLive(args.projectIdOrTopic);
+        ctx.logger.info('Repurpose article', { topic: data.topic, tweets: data.twitter?.thread?.length });
+        return data;
+    }
+
+    @Tool({
+        name: 'rewrite_content_paragraph',
+        description:
+            'AI rewrites a text section or paragraph for maximum answer-engine citation grounding and clarity.',
+        inputSchema: z.object({
+            text: z.string().describe('Original paragraph text to rewrite.'),
+            intent: z.string().optional().describe('Target search intent or focus.'),
+            brandContext: z.string().optional().describe('Brand context or positioning guidelines.'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async rewriteContentParagraph(
+        args: { text: string; intent?: string; brandContext?: string },
+        ctx: ExecutionContext
+    ) {
+        const data = await this.cognerd.rewriteParagraphLive(args);
+        ctx.logger.info('Rewrite paragraph', { lift: data.estimatedCitationLift });
+        return data;
+    }
+
+    @Tool({
+        name: 'generate_standalone_social',
+        description:
+            'Generates standalone social post copy (LinkedIn/X) on a given topic without creating a full project.',
+        inputSchema: z.object({
+            topic: z.string().describe('Topic or thesis for the post.'),
+            platform: z.enum(['linkedin', 'twitter', 'both']).optional().default('both').describe('Target social platform.'),
+            tone: z.string().optional().describe('Voice/tone (e.g. thought-leader, conversational).'),
+        }),
+    })
+    @UseGuards(OAuthGuard)
+    @Widget(cognerdWidget('content-studio'))
+    async generateStandaloneSocial(
+        args: { topic: string; platform?: 'linkedin' | 'twitter' | 'both'; tone?: string },
+        ctx: ExecutionContext
+    ) {
+        const data = await this.cognerd.generateStandaloneSocialLive(args);
+        ctx.logger.info('Standalone social', { topic: data.topic, platform: data.platform });
+        return data;
+    }
 }
+
 

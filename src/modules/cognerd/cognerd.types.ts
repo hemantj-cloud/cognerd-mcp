@@ -231,3 +231,69 @@ export type CompetitorOperationResult = {
     competitors: Array<{ name: string; url: string; aliases?: string[] }>;
 };
 
+export type CarouselSlide = {
+    slideNumber: number;
+    headline: string;
+    body: string;
+    callout?: string;
+    visualCue?: string;
+    bulletPoints?: string[];
+};
+
+export type CarouselDeck = {
+    id: string;
+    brandId: string;
+    topic: string;
+    title: string;
+    targetAudience: string;
+    theme: 'minimal' | 'bold' | 'dark' | 'corporate';
+    slideCount: number;
+    slides: CarouselSlide[];
+    status: 'draft' | 'rendered' | 'published';
+    creditsDeducted: number;
+    createdAt: string;
+    previewUrl?: string;
+};
+
+export type ArticleWizardProject = {
+    id: string;
+    brandId: string;
+    title: string;
+    targetPrompt: string;
+    status: 'draft' | 'research' | 'writing' | 'firewall_passed' | 'finalized';
+    currentStep: 'outline' | 'research' | 'draft' | 'firewall' | 'finalize';
+    outline: string[];
+    researchFacts: Array<{ claim: string; sourceUrl: string; confidence: number }>;
+    contentMarkdown: string;
+    wordCount: number;
+    citationsIncluded: number;
+    heroImageUrl?: string;
+    creditsReserved: number;
+    updatedAt: string;
+};
+
+export type SocialRepurposeBundle = {
+    projectId?: string;
+    topic: string;
+    linkedin: {
+        postText: string;
+        hashtags: string[];
+        hook: string;
+    };
+    twitter: {
+        thread: string[];
+        hashtags: string[];
+    };
+    keyTakeaways: string[];
+    generatedAt: string;
+};
+
+export type RewriteParagraphResult = {
+    originalText: string;
+    rewrittenText: string;
+    focusIntent: string;
+    estimatedCitationLift: string;
+    improvements: string[];
+};
+
+

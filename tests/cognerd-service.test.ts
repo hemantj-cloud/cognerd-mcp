@@ -124,5 +124,48 @@ describe('CogNerd Service & Tools Integration', { timeout: 15000 }, () => {
     expect(compResult.totalCompetitors).toBeGreaterThan(0);
     expect(compResult.competitors.length).toBeGreaterThan(0);
   });
+
+  it('Phase 2: should generate and fetch LinkedIn carousel deck', async () => {
+    const carousel = await service.generateCarouselLive({ topic: 'Generative Engine Optimization' });
+    expect(carousel.id).toBeDefined();
+    expect(carousel.slides.length).toBeGreaterThan(0);
+    expect(carousel.creditsDeducted).toBe(15);
+
+    const fetched = await service.getCarouselDeckLive(carousel.id);
+    expect(fetched.id).toBeDefined();
+
+    const rerendered = await service.rerenderCarouselLive(carousel.id, { theme: 'dark' });
+    expect(rerendered.status).toBe('rendered');
+  });
+
+  it('Phase 2: should run article wizard flow and finalize to blog', async () => {
+    const project = await service.startArticleWizardLive({
+      targetPrompt: 'Best MCP Framework',
+      title: 'Guide to MCP',
+    });
+    expect(project.id).toBeDefined();
+    expect(project.outline.length).toBeGreaterThan(0);
+    expect(project.creditsReserved).toBe(30);
+
+    const stepRes = await service.runArticleWizardStepLive(project.id, 'research');
+    expect(stepRes.status).toBe('success');
+
+    const finalized = await service.finalizeArticleToBlogLive(project.id);
+    expect(finalized.status).toBe('published');
+  });
+
+  it('Phase 2: should repurpose article to social and rewrite paragraph', async () => {
+    const repurposed = await service.repurposeArticleLive('sample-proj-1');
+    expect(repurposed.linkedin.postText).toBeDefined();
+    expect(repurposed.twitter.thread.length).toBeGreaterThan(0);
+
+    const rewrite = await service.rewriteParagraphLive({ text: 'Our platform helps SEO teams.' });
+    expect(rewrite.rewrittenText).toBeDefined();
+    expect(rewrite.improvements.length).toBeGreaterThan(0);
+
+    const standalone = await service.generateStandaloneSocialLive({ topic: 'AI Visibility' });
+    expect(standalone.content).toBeDefined();
+  });
 });
+
 
