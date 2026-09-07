@@ -23,16 +23,107 @@ export interface McpRpcResponse<T = any> {
 export class CognerdApiClient {
   private config: CognerdConfig;
   private httpClient: AxiosInstance;
+  private sessionCookie: string | null = null;
+  private sessionExpiresAt: number = 0;
 
   constructor(private readonly oauthService: OAuthService) {
     this.config = cognerdConfig;
     this.httpClient = axios.create({
-      timeout: 30000,
+      timeout: 45000,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json, text/event-stream',
       },
     });
+  }
+
+  /**
+   * Ensures an active Better-Auth session cookie for direct REST endpoints on api-dev.cognerd.in.
+   */
+  async ensureSession(): Promise<string | null> {
+    if (this.config.isMockMode) {
+      return null;
+    }
+
+    if (this.sessionCookie && Date.now() < this.sessionExpiresAt) {
+      return this.sessionCookie;
+    }
+
+    if (!this.config.sandboxEmail || !this.config.sandboxPassword) {
+      return null;
+    }
+
+    try {
+      const response = await this.httpClient.post(
+        `${this.config.restBaseUrl}/api/auth/sign-in/email`,
+        {
+          email: this.config.sandboxEmail,
+          password: this.config.sandboxPassword,
+          rememberMe: true,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          validateStatus: (status) => status >= 200 && status < 400,
+        }
+      );
+
+      const setCookies = response.headers['set-cookie'];
+      if (setCookies && Array.isArray(setCookies) && setCookies.length > 0) {
+        this.sessionCookie = setCookies.map((c: string) => c.split(';')[0]).join('; ');
+        this.sessionExpiresAt = Date.now() + 6 * 24 * 60 * 60 * 1000; // 6 days
+        return this.sessionCookie;
+      }
+    } catch (err: any) {
+      console.warn(`[CognerdApiClient] Session sign-in failed: ${err.message}`);
+    }
+
+    return null;
+  }
+
+  /**
+   * Calls a REST API endpoint on the CogNerd backend with Better-Auth session cookie.
+   */
+  async callRest<T = any>(
+    endpoint: string,
+    options: {
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+      data?: any;
+      params?: Record<string, any>;
+      headers?: Record<string, string>;
+    } = {}
+  ): Promise<T | null> {
+    if (this.config.isMockMode) {
+      return null;
+    }
+
+    try {
+      const cookie = await this.ensureSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...options.headers,
+      };
+
+      if (cookie) {
+        headers['Cookie'] = cookie;
+      }
+
+      const response = await this.httpClient.request<T>({
+        url: `${this.config.restBaseUrl}${endpoint}`,
+        method: options.method || 'GET',
+        data: options.data,
+        params: options.params,
+        headers,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.warn(`[CognerdApiClient] REST ${options.method || 'GET'} ${endpoint} failed: ${error.message}`);
+      return null;
+    }
   }
 
   /**
@@ -90,6 +181,35 @@ export class CognerdApiClient {
   }
 
   /**
+   * Polls an async job until completion using get_job_status tool or REST polling.
+   */
+  async pollJobUntilComplete<T = any>(jobId: string, maxAttempts = 15, intervalMs = 2000): Promise<T | null> {
+    if (this.config.isMockMode) {
+      return null;
+    }
+
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const jobStatus = await this.callTool('get_job_status', { job_id: jobId });
+        if (jobStatus && (jobStatus.status === 'completed' || jobStatus.status === 'done')) {
+          const artifact = await this.callTool('get_artifact', { job_id: jobId });
+          return (artifact || jobStatus) as T;
+        }
+        if (jobStatus && jobStatus.status === 'failed') {
+          console.warn(`[CognerdApiClient] Job ${jobId} reported failure:`, jobStatus.error);
+          return null;
+        }
+      } catch (err: any) {
+        console.warn(`[CognerdApiClient] Job status poll error: ${err.message}`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    return null;
+  }
+
+  /**
    * Parses either raw JSON or SSE text/event-stream from MCP responses.
    */
   private parseMcpPayload<T>(raw: any): McpRpcResponse<T> | null {
@@ -124,3 +244,4 @@ export class CognerdApiClient {
     return null;
   }
 }
+

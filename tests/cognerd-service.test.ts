@@ -85,4 +85,127 @@ describe('CogNerd Service & Tools Integration', { timeout: 15000 }, () => {
     const studio = await service.getContentStudio('all');
     expect(studio.totalBriefs).toBeGreaterThan(0);
   });
+
+  it('Phase 1: should generate GEO assets bundle', async () => {
+    const geoJob = await service.generateGeoAssetsLive();
+    expect(geoJob.jobId).toBeDefined();
+    expect(geoJob.assets.length).toBeGreaterThan(0);
+    expect(geoJob.status).toBe('completed');
+  });
+
+  it('Phase 1: should trigger AEO audit and fetch latest report', async () => {
+    const aeo = await service.triggerAeoAuditLive();
+    expect(aeo.score).toBeGreaterThan(0);
+    expect(aeo.findings.length).toBeGreaterThan(0);
+
+    const report = await service.getLatestAeoReport();
+    expect(report.score).toBeGreaterThan(0);
+  });
+
+  it('Phase 1: should return technical site diagnostics', async () => {
+    const diag = await service.getTechnicalDiagnostics();
+    expect(diag.status).toBe('healthy');
+    expect(diag.crawlability.llmsTxt).toBe(true);
+    expect(diag.aiEngineAccess.gptBot).toBe(true);
+  });
+
+  it('Phase 1: should generate ICP and suggest buyer personas', async () => {
+    const icp = await service.generateIcpLive();
+    expect(icp.icp).toBeDefined();
+    expect(icp.personas.length).toBeGreaterThan(0);
+    expect(icp.creditsDeducted).toBe(6);
+
+    const suggested = await service.suggestPersonasLive({ industry: 'AI' });
+    expect(suggested.personas.length).toBeGreaterThan(0);
+  });
+
+  it('Phase 1: should manage tracked competitors', async () => {
+    const compResult = await service.manageCompetitorLive('list');
+    expect(compResult.totalCompetitors).toBeGreaterThan(0);
+    expect(compResult.competitors.length).toBeGreaterThan(0);
+  });
+
+  it('Phase 2: should generate and fetch LinkedIn carousel deck', async () => {
+    const carousel = await service.generateCarouselLive({ topic: 'Generative Engine Optimization' });
+    expect(carousel.id).toBeDefined();
+    expect(carousel.slides.length).toBeGreaterThan(0);
+    expect(carousel.creditsDeducted).toBe(15);
+
+    const fetched = await service.getCarouselDeckLive(carousel.id);
+    expect(fetched.id).toBeDefined();
+
+    const rerendered = await service.rerenderCarouselLive(carousel.id, { theme: 'dark' });
+    expect(rerendered.status).toBe('rendered');
+  });
+
+  it('Phase 2: should run article wizard flow and finalize to blog', async () => {
+    const project = await service.startArticleWizardLive({
+      targetPrompt: 'Best MCP Framework',
+      title: 'Guide to MCP',
+    });
+    expect(project.id).toBeDefined();
+    expect(project.outline.length).toBeGreaterThan(0);
+    expect(project.creditsReserved).toBe(30);
+
+    const stepRes = await service.runArticleWizardStepLive(project.id, 'research');
+    expect(stepRes.status).toBe('success');
+
+    const finalized = await service.finalizeArticleToBlogLive(project.id);
+    expect(finalized.status).toBe('published');
+  });
+
+  it('Phase 2: should repurpose article to social and rewrite paragraph', async () => {
+    const repurposed = await service.repurposeArticleLive('sample-proj-1');
+    expect(repurposed.linkedin.postText).toBeDefined();
+    expect(repurposed.twitter.thread.length).toBeGreaterThan(0);
+
+    const rewrite = await service.rewriteParagraphLive({ text: 'Our platform helps SEO teams.' });
+    expect(rewrite.rewrittenText).toBeDefined();
+    expect(rewrite.improvements.length).toBeGreaterThan(0);
+
+    const standalone = await service.generateStandaloneSocialLive({ topic: 'AI Visibility' });
+    expect(standalone.content).toBeDefined();
+  });
+
+  it('Phase 3: should return backlinks profile and competitor comparisons', async () => {
+    const backlinks = await service.getBacklinksSnapshotLive();
+    expect(backlinks.totalBacklinks).toBeGreaterThan(0);
+    expect(backlinks.referringDomains).toBeGreaterThan(0);
+    expect(backlinks.competitors.length).toBeGreaterThan(0);
+    expect(backlinks.aiCitationCorrelation).toBeDefined();
+
+    const refresh = await service.refreshCompetitorBacklinksLive();
+    expect(refresh.status).toBe('refreshed');
+    expect(refresh.creditsDeducted).toBe(15);
+  });
+
+  it('Phase 3: should return Search Console and GA4 telemetry', async () => {
+    const gsc = await service.getSearchConsoleReportLive(30);
+    expect(gsc.totalClicks).toBeGreaterThan(0);
+    expect(gsc.topQueries.length).toBeGreaterThan(0);
+
+    const sites = await service.listSearchConsoleSitesLive();
+    expect(sites.length).toBeGreaterThan(0);
+
+    const ga4 = await service.getGa4TrafficReportLive();
+    expect(ga4.totalUsers).toBeGreaterThan(0);
+    expect(ga4.channels.length).toBeGreaterThan(0);
+  });
+
+  it('Phase 3: should return Clarity, Google Ads, and integrations status', async () => {
+    const clarity = await service.getClarityReportLive();
+    expect(clarity.totalSessions).toBeGreaterThan(0);
+    expect(clarity.scrollDepthPercent).toBeGreaterThan(0);
+
+    const ads = await service.getGoogleAdsReportLive();
+    expect(ads.totalSpend).toBeGreaterThan(0);
+    expect(ads.conversions).toBeGreaterThan(0);
+
+    const integrations = await service.getIntegrationsStatusLive();
+    expect(integrations.totalToolkits).toBeGreaterThan(0);
+    expect(integrations.connectedCount).toBeGreaterThan(0);
+  });
 });
+
+
+
