@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-const BASE_URL = 'https://mcp-185-131-53-177.sslip.io';
+const BASE_URL = 'https://mcp.cognerd.in';
 const SANDBOX_EMAIL = 'nitrostack.sandbox@cognerd.ai';
 const SANDBOX_PASSWORD = 'VDAPdpRAWFobUhyb';
 const REDIRECT_URI = 'http://localhost:3005/auth/callback';

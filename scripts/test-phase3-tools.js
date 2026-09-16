@@ -3,7 +3,7 @@ import { CognerdService } from '../dist/modules/cognerd/cognerd.service.js';
 import { CognerdApiClient } from '../dist/services/cognerd-api.client.js';
 import { OAuthService } from '../dist/services/oauth.service.js';
 
-const BASE_URL = 'https://mcp-185-131-53-177.sslip.io';
+const BASE_URL = 'https://mcp.cognerd.in';
 const SANDBOX_EMAIL = 'nitrostack.sandbox@cognerd.ai';
 const SANDBOX_PASSWORD = 'VDAPdpRAWFobUhyb';
 const REDIRECT_URI = 'http://localhost:3005/auth/callback';

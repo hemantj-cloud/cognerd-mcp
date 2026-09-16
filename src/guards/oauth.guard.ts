@@ -103,7 +103,7 @@ export class OAuthGuard implements Guard {
     // 2. Validate CogNerd Bearer token via live gateway
     if (token.startsWith('cgnrd_') || token.length >= 10) {
       try {
-        const res = await fetch('https://mcp-185-131-53-177.sslip.io/mcp', {
+        const res = await fetch('https://mcp.cognerd.in/mcp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

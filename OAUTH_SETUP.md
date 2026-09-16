@@ -8,15 +8,15 @@ This guide explains how OAuth 2.1 authentication works with the live CogNerd MCP
 
 CogNerd exposes its product surface as a single MCP server with built-in OAuth 2.1. A compliant MCP client discovers everything at runtime without hard-coded secrets.
 
-* **Live MCP Endpoint**: `https://mcp-185-131-53-177.sslip.io/mcp`
-* **OAuth Authorization Server**: `https://mcp-185-131-53-177.sslip.io`
+* **Live MCP Endpoint**: `https://mcp.cognerd.in/mcp`
+* **OAuth Authorization Server**: `https://mcp.cognerd.in`
 * **Transport**: Streamable HTTP MCP (POST /mcp)
 * **Auth Method**: OAuth 2.1 with PKCE (S256) & Dynamic Client Registration (RFC 7591)
 * **Client Type**: Public Client (`token_endpoint_auth_methods_supported: ["none"]`) — no client secret required.
 * **Scope**: `cognerd` (the single supported scope)
 
 > [!NOTE]
-> Do not use any `*.ts.net` URL that may appear in internal notes — that is a private Tailscale hostname. The `sslip.io` URL above is the public one.
+> Do not use any `*.ts.net` URL that may appear in internal notes — that is a private Tailscale hostname. The `mcp.cognerd.in` URL above is the official public one.
 
 ---
 
@@ -26,26 +26,26 @@ The live CogNerd gateway provides runtime discovery:
 
 ### 1. Protected Resource Discovery
 ```http
-GET https://mcp-185-131-53-177.sslip.io/.well-known/oauth-protected-resource
+GET https://mcp.cognerd.in/.well-known/oauth-protected-resource
 ```
 ```json
 {
-  "resource": "https://mcp-185-131-53-177.sslip.io/mcp",
-  "authorization_servers": ["https://mcp-185-131-53-177.sslip.io"],
+  "resource": "https://mcp.cognerd.in/mcp",
+  "authorization_servers": ["https://mcp.cognerd.in"],
   "bearer_methods_supported": ["header"]
 }
 ```
 
 ### 2. Authorization Server Discovery
 ```http
-GET https://mcp-185-131-53-177.sslip.io/.well-known/oauth-authorization-server
+GET https://mcp.cognerd.in/.well-known/oauth-authorization-server
 ```
 ```json
 {
-  "issuer": "https://mcp-185-131-53-177.sslip.io",
-  "authorization_endpoint": "https://mcp-185-131-53-177.sslip.io/authorize",
-  "token_endpoint": "https://mcp-185-131-53-177.sslip.io/token",
-  "registration_endpoint": "https://mcp-185-131-53-177.sslip.io/register",
+  "issuer": "https://mcp.cognerd.in",
+  "authorization_endpoint": "https://mcp.cognerd.in/authorize",
+  "token_endpoint": "https://mcp.cognerd.in/token",
+  "registration_endpoint": "https://mcp.cognerd.in/register",
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
   "code_challenge_methods_supported": ["S256"],
@@ -87,14 +87,14 @@ HOST=localhost
 OAUTH_REQUIRED=false
 
 # Public identity of the MCP server
-RESOURCE_URI=https://mcp-185-131-53-177.sslip.io/mcp
+RESOURCE_URI=https://mcp.cognerd.in/mcp
 
 # CogNerd Authorization Server URL
-AUTH_SERVER_URL=https://mcp-185-131-53-177.sslip.io
+AUTH_SERVER_URL=https://mcp.cognerd.in
 
 # Token validation audience & issuer
-TOKEN_AUDIENCE=https://mcp-185-131-53-177.sslip.io/mcp
-TOKEN_ISSUER=https://mcp-185-131-53-177.sslip.io
+TOKEN_AUDIENCE=https://mcp.cognerd.in/mcp
+TOKEN_ISSUER=https://mcp.cognerd.in
 
 # Dynamic Client Registration (RFC 7591)
 OAUTH_ENABLE_CLIENT_REGISTRATION=true
@@ -102,13 +102,13 @@ OAUTH_ENABLE_CLIENT_REGISTRATION=true
 # =============================================================================
 # CogNerd Specific Settings
 # =============================================================================
-COGNERD_API_BASE_URL=https://mcp-185-131-53-177.sslip.io
+COGNERD_API_BASE_URL=https://mcp.cognerd.in
 
 # Scope: 'cognerd' is the single supported scope
 COGNERD_SCOPE=cognerd
 
-COGNERD_AUTH_URL=https://mcp-185-131-53-177.sslip.io/authorize
-COGNERD_TOKEN_URL=https://mcp-185-131-53-177.sslip.io/token
+COGNERD_AUTH_URL=https://mcp.cognerd.in/authorize
+COGNERD_TOKEN_URL=https://mcp.cognerd.in/token
 COGNERD_REDIRECT_URI=http://localhost:3005/auth/callback
 
 COGNERD_MOCK_MODE=false
@@ -121,7 +121,7 @@ COGNERD_MOCK_MODE=false
 ### 1. Claude Desktop / claude.ai
 * Go to **Connectors** → **Add**
 * Name: `CogNerd`
-* URL: `https://mcp-185-131-53-177.sslip.io/mcp`
+* URL: `https://mcp.cognerd.in/mcp`
 * The browser opens the CogNerd login page; sign in with the sandbox account (`nitrostack.sandbox@cognerd.ai` / `VDAPdpRAWFobUhyb`) and approve.
 
 ### 2. mcp-remote
@@ -130,7 +130,7 @@ COGNERD_MOCK_MODE=false
   "mcpServers": {
     "cognerd": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp-185-131-53-177.sslip.io/mcp"]
+      "args": ["-y", "mcp-remote", "https://mcp.cognerd.in/mcp"]
     }
   }
 }

@@ -3,29 +3,29 @@ import { loadConfig } from '../src/config/cognerd.config.js';
 
 describe('CogNerd Configuration Loader', () => {
   const mockEnv: NodeJS.ProcessEnv = {
-    RESOURCE_URI: 'https://mcp-185-131-53-177.sslip.io/mcp',
-    AUTH_SERVER_URL: 'https://mcp-185-131-53-177.sslip.io',
+    RESOURCE_URI: 'https://mcp.cognerd.in/mcp',
+    AUTH_SERVER_URL: 'https://mcp.cognerd.in',
     OAUTH_REQUIRED: 'false',
-    COGNERD_API_BASE_URL: 'https://mcp-185-131-53-177.sslip.io',
+    COGNERD_API_BASE_URL: 'https://mcp.cognerd.in',
     COGNERD_SCOPE: 'cognerd',
   };
 
   it('should successfully load valid configuration with defaults', () => {
     const config = loadConfig(mockEnv);
 
-    expect(config.resourceUri).toBe('https://mcp-185-131-53-177.sslip.io/mcp');
-    expect(config.authServerUrl).toBe('https://mcp-185-131-53-177.sslip.io');
+    expect(config.resourceUri).toBe('https://mcp.cognerd.in/mcp');
+    expect(config.authServerUrl).toBe('https://mcp.cognerd.in');
     expect(config.oauthRequired).toBe(false);
     expect(config.scopesSupported).toEqual(['cognerd']);
     expect(config.codeChallengeMethod).toBe('S256');
-    expect(config.authUrl).toBe('https://mcp-185-131-53-177.sslip.io/authorize');
-    expect(config.tokenUrl).toBe('https://mcp-185-131-53-177.sslip.io/token');
+    expect(config.authUrl).toBe('https://mcp.cognerd.in/authorize');
+    expect(config.tokenUrl).toBe('https://mcp.cognerd.in/token');
   });
 
   it('should fallback to default cognerd scope when not provided', () => {
     const envWithoutScope: NodeJS.ProcessEnv = {
-      RESOURCE_URI: 'https://mcp-185-131-53-177.sslip.io/mcp',
-      AUTH_SERVER_URL: 'https://mcp-185-131-53-177.sslip.io',
+      RESOURCE_URI: 'https://mcp.cognerd.in/mcp',
+      AUTH_SERVER_URL: 'https://mcp.cognerd.in',
     };
     const config = loadConfig(envWithoutScope);
     expect(config.scopesSupported).toEqual(['cognerd']);

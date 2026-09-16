@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-const COGNERD_AUTH_URL = 'https://mcp-185-131-53-177.sslip.io';
+const COGNERD_AUTH_URL = 'https://mcp.cognerd.in';
 const LOCAL_MCP_URL = 'http://localhost:3000/mcp';
 const SANDBOX_EMAIL = 'nitrostack.sandbox@cognerd.ai';
 const SANDBOX_PASSWORD = 'VDAPdpRAWFobUhyb';
