@@ -129,13 +129,17 @@ export class CognerdApiClient {
   /**
    * Calls a live tool on the CogNerd MCP server using JSON-RPC 2.0.
    */
-  async callTool<T = any>(toolName: string, args: Record<string, any> = {}): Promise<T | null> {
+  async callTool<T = any>(
+    toolName: string,
+    args: Record<string, any> = {},
+    bearerToken?: string
+  ): Promise<T | null> {
     if (this.config.isMockMode) {
       return null;
     }
 
     try {
-      const token = await this.oauthService.ensureAccessToken();
+      const token = bearerToken || (await this.oauthService.ensureAccessToken());
       const payload = {
         jsonrpc: '2.0',
         id: Date.now(),
@@ -156,8 +160,8 @@ export class CognerdApiClient {
       const parsed = this.parseMcpPayload<T>(response.data);
       if (!parsed) return null;
 
-      if (parsed.error) {
-        console.warn(`[CognerdApiClient] Tool ${toolName} returned error:`, parsed.error);
+      if (parsed.error || parsed.result?.isError) {
+        console.warn(`[CognerdApiClient] Tool ${toolName} returned error:`, parsed.error || parsed.result?.content?.[0]?.text);
         return null;
       }
 

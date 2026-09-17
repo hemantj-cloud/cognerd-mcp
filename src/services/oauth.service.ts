@@ -146,7 +146,12 @@ export class OAuthService {
       return existing;
     }
 
-    // If sandbox credentials exist, authenticate directly via PKCE
+    if (this.config.accessToken) {
+      this.setAccessToken(this.config.accessToken, 30 * 24 * 60 * 60, this.config.scope);
+      return this.config.accessToken;
+    }
+
+    // If sandbox/test credentials exist (e.g. during integration tests), authenticate directly via PKCE
     if (this.config.sandboxEmail && this.config.sandboxPassword) {
       try {
         // Step 1: Dynamic client registration if needed

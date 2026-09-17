@@ -2,11 +2,12 @@ import crypto from 'node:crypto';
 import { CognerdService } from '../dist/modules/cognerd/cognerd.service.js';
 import { CognerdApiClient } from '../dist/services/cognerd-api.client.js';
 import { OAuthService } from '../dist/services/oauth.service.js';
+import { TEST_CONFIG } from './load-test-env.js';
 
-const BASE_URL = 'https://mcp.cognerd.in';
-const SANDBOX_EMAIL = 'nitrostack.sandbox@cognerd.ai';
-const SANDBOX_PASSWORD = 'VDAPdpRAWFobUhyb';
-const REDIRECT_URI = 'http://localhost:3005/auth/callback';
+const BASE_URL = TEST_CONFIG.baseUrl;
+const SANDBOX_EMAIL = TEST_CONFIG.email;
+const SANDBOX_PASSWORD = TEST_CONFIG.password;
+const REDIRECT_URI = TEST_CONFIG.redirectUri;
 
 function base64UrlEncode(buffer) {
   return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

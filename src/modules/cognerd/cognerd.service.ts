@@ -48,18 +48,18 @@ export class CognerdService {
 
     async whoami() {
         const live = await this.apiClient.callTool('whoami');
-        if (live) return live;
+        if (live && typeof live === 'object' && live.user && live.credits) return live;
         return {
-            user: { id: '113', name: 'Nitrostack Partner', email: 'nitrostack.sandbox@cognerd.ai' },
+            user: { id: 'usr-1', name: 'CogNerd Partner', email: 'partner@cognerd.ai' },
             brands: [{ id: '8fd53305-fdfc-4825-b4b1-bc64233d46d7', name: 'CogNerd', url: 'https://www.cognerd.ai' }],
-            scopes: ['cognerd:full'],
+            scopes: ['cognerd'],
             credits: { balance: 410, reserved: 0, draftArticleCost: 30 },
         };
     }
 
     async getCreditBalance() {
         const live = await this.apiClient.callTool('get_credit_balance');
-        if (live) return live;
+        if (live && typeof live === 'object' && typeof live.balance === 'number') return live;
         return { balance: 410, reserved: 0, draftArticleCost: 30 };
     }
 

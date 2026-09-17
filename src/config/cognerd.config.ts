@@ -50,7 +50,7 @@ const EnvSchema = z.object({
     .string()
     .url('COGNERD_REST_BASE_URL must be a valid URL')
     .optional()
-    .default('https://api-dev.cognerd.in'),
+    .default('https://api.cognerd.in'),
   COGNERD_CLIENT_ID: z.string().optional(),
   COGNERD_AUTH_URL: z
     .string()
@@ -66,8 +66,10 @@ const EnvSchema = z.object({
     .optional()
     .default('http://localhost:3005/auth/callback'),
   COGNERD_SCOPE: z.string().optional().default('cognerd'),
-  COGNERD_SANDBOX_EMAIL: z.string().optional().default('nitrostack.sandbox@cognerd.ai'),
-  COGNERD_SANDBOX_PASSWORD: z.string().optional().default('VDAPdpRAWFobUhyb'),
+  COGNERD_SANDBOX_EMAIL: z.string().optional(),
+  COGNERD_SANDBOX_PASSWORD: z.string().optional(),
+  TEST_COGNERD_EMAIL: z.string().optional(),
+  TEST_COGNERD_PASSWORD: z.string().optional(),
   COGNERD_ACCESS_TOKEN: z.string().optional(),
   COGNERD_MOCK_MODE: z
     .enum(['true', 'false'])
@@ -157,8 +159,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CognerdConfig 
     scopesSupported: parsed.COGNERD_SCOPE.split(/\s+/).filter(Boolean),
     codeChallengeMethod: 'S256' as const,
     tokenLifetimeDays: 30,
-    sandboxEmail: parsed.COGNERD_SANDBOX_EMAIL,
-    sandboxPassword: parsed.COGNERD_SANDBOX_PASSWORD,
+    sandboxEmail: parsed.COGNERD_SANDBOX_EMAIL || parsed.TEST_COGNERD_EMAIL,
+    sandboxPassword: parsed.COGNERD_SANDBOX_PASSWORD || parsed.TEST_COGNERD_PASSWORD,
     accessToken: parsed.COGNERD_ACCESS_TOKEN || undefined,
     isMockMode: parsed.COGNERD_MOCK_MODE ?? true,
   });
