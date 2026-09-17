@@ -18,6 +18,8 @@ export default function HomePage() {
                 <li><a href="/ai-readiness-audit">AI Readiness Audit</a></li>
                 <li><a href="/geo-assets">GEO Assets</a></li>
                 <li><a href="/agxp">AGXP</a></li>
+                <li><a href="/whoami">User Identity & Workspace (/whoami)</a></li>
+                <li><a href="/credit-balance">Credit Balance & Wallet (/credit-balance)</a></li>
                 <li><a href="/content-studio">Content Studio</a></li>
             </ul>
         </div>

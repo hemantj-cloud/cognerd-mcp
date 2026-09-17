@@ -13,6 +13,8 @@ import {
     GEO_ASSETS_EXAMPLE,
     PROMPT_INTELLIGENCE_EXAMPLE,
     SCAN_HISTORY_EXAMPLE,
+    WHOAMI_EXAMPLE,
+    CREDIT_BALANCE_EXAMPLE,
 } from './cognerd.examples.js';
 
 /**
@@ -76,6 +78,7 @@ export class CognerdTools {
         description: 'Verify current authenticated user, visible brands, granted scopes, and wallet credit balance.',
         inputSchema: z.object({}),
     })
+    @Widget(cognerdWidget('whoami'))
     @UseGuards(OAuthGuard)
     async whoami(_args: Record<string, any>, ctx: ExecutionContext) {
         const data = await this.cognerd.whoami();
@@ -88,6 +91,7 @@ export class CognerdTools {
         description: 'Retrieve current credit balance and neuron reservation status for the authenticated workspace.',
         inputSchema: z.object({}),
     })
+    @Widget(cognerdWidget('credit-balance'))
     @UseGuards(OAuthGuard)
     async getCreditBalance(_args: Record<string, any>, ctx: ExecutionContext) {
         const data = await this.cognerd.getCreditBalance();

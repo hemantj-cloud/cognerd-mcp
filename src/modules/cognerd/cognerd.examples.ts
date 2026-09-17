@@ -186,3 +186,86 @@ export const CONTENT_STUDIO_EXAMPLE = {
         totalBriefs: filterBriefs('gap').length,
     },
 };
+
+export const WHOAMI_EXAMPLE = {
+    request: {},
+    response: {
+        user: {
+            id: '144',
+            name: 'NitroStack Partner',
+            email: 'partner@cognerd.ai',
+        },
+        brands: [
+            {
+                id: '8fd53305-fdfc-4825-b4b1-bc64233d46d7',
+                name: 'CogNerd',
+                url: 'https://www.cognerd.ai',
+                domain: 'cognerd.ai',
+            },
+        ],
+        scopes: ['cognerd'],
+        credits: {
+            balance: 410,
+            reserved: 0,
+            draftArticleCost: 30,
+        },
+    },
+};
+
+export const CREDIT_BALANCE_EXAMPLE = {
+    request: {},
+    response: {
+        balance: 410,
+        reserved: 0,
+        draftArticleCost: 30,
+        tier: 'Growth Partner',
+        totalAllocated: 500,
+        periodEnd: '2026-10-01T00:00:00Z',
+        autoRecharge: true,
+        operations: [
+            {
+                name: 'Draft Article from Brief',
+                cost: 30,
+                unit: '30 credits / article',
+                description: 'Research-grounded, fact-checked AI article with source citations. Charged only on success.',
+                isFree: false,
+            },
+            {
+                name: 'Baseline Brand Scan',
+                cost: 50,
+                unit: '50 credits / scan',
+                description: 'Full multi-engine discovery across ChatGPT, Perplexity, Gemini, and Claude.',
+                isFree: false,
+            },
+            {
+                name: 'AEO Readiness Audit',
+                cost: 0,
+                unit: 'Free',
+                description: 'Audit entity clarity, schema, chunking, and citation surface readiness.',
+                isFree: true,
+            },
+            {
+                name: 'Weak Prompts & Gap Discovery',
+                cost: 0,
+                unit: 'Free',
+                description: 'Discover buyer queries where your brand is losing to competitors.',
+                isFree: true,
+            },
+            {
+                name: 'GEO Assets Generation',
+                cost: 0,
+                unit: 'Free',
+                description: 'Generate llms.txt, JSON-LD, and entity files for AI crawlers.',
+                isFree: true,
+            },
+            {
+                name: 'Brand Memory & Context Recall',
+                cost: 0,
+                unit: 'Free',
+                description: 'Durable brand preferences and history recall across conversations.',
+                isFree: true,
+            },
+        ],
+    },
+};
+
