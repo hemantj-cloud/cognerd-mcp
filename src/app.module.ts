@@ -1,6 +1,7 @@
 import { McpApp, Module, ConfigModule, OAuthModule } from '@nitrostack/core';
 import { CognerdModule } from './modules/cognerd/cognerd.module.js';
 import { SystemHealthCheck } from './health/system.health.js';
+import { OAuthIntrospectionService } from './services/oauth-introspection.service.js';
 import { cognerdConfig } from './config/cognerd.config.js';
 
 /**
@@ -33,7 +34,7 @@ import { cognerdConfig } from './config/cognerd.config.js';
             // rather than local JWTs with JWKS or RFC 7662 introspection endpoints.
             // OAuth discovery endpoints are fully active, allowing clients like NitroStudio
             // to discover and authenticate with CogNerd without false 401 rejections.
-            required: false,
+            required: cognerdConfig.oauthRequired,
 
             // Resource URI (Public identity of the MCP server or cloud API)
             resourceUri: cognerdConfig.resourceUri,
@@ -71,6 +72,7 @@ import { cognerdConfig } from './config/cognerd.config.js';
     ],
     providers: [
         SystemHealthCheck,
+        OAuthIntrospectionService,
     ],
 })
 export class AppModule {}

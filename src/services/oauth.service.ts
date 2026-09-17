@@ -96,18 +96,6 @@ export class OAuthService {
       }
       return parsed;
     } catch (error: any) {
-      if (this.config.isMockMode) {
-        // Mock fallback for offline test environments
-        const mockToken: OAuthTokenResponse = {
-          access_token: `mock_tok_${Date.now()}_cognerd_bearer`,
-          token_type: 'Bearer',
-          expires_in: 30 * 24 * 60 * 60, // 30 days
-          scope: this.config.scope,
-        };
-        this.setAccessToken(mockToken.access_token, mockToken.expires_in, mockToken.scope);
-        return mockToken;
-      }
-
       const errMsg = error.response?.data?.error_description || error.response?.data?.error || error.message;
       throw new Error(`CogNerd OAuth token exchange failed: ${errMsg}`);
     }
@@ -219,10 +207,7 @@ export class OAuthService {
       }
     }
 
-    // Fallback in mock mode or if credentials not configured
-    const mockToken = `mock_tok_${Date.now()}_cognerd_bearer`;
-    this.setAccessToken(mockToken, 30 * 24 * 60 * 60, this.config.scope);
-    return mockToken;
+    throw new Error('No active OAuth token available. Please authenticate with CogNerd via OAuth 2.1.');
   }
 
   /**

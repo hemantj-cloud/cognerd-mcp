@@ -74,7 +74,7 @@ const EnvSchema = z.object({
   COGNERD_MOCK_MODE: z
     .enum(['true', 'false'])
     .optional()
-    .transform((val) => val !== 'false'),
+    .transform(() => false),
 });
 
 export type ValidatedEnv = z.infer<typeof EnvSchema>;
@@ -137,14 +137,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CognerdConfig 
   return Object.freeze({
     resourceUri: parsed.RESOURCE_URI,
     authServerUrl: parsed.AUTH_SERVER_URL,
-    oauthRequired: parsed.OAUTH_REQUIRED ?? false,
+    oauthRequired: parsed.OAUTH_REQUIRED ?? true,
     jwksUri: parsed.JWKS_URI,
     tokenAudience: parsed.TOKEN_AUDIENCE || parsed.RESOURCE_URI,
     tokenIssuer: parsed.TOKEN_ISSUER || parsed.AUTH_SERVER_URL,
     oauthEnableClientRegistration: parsed.OAUTH_ENABLE_CLIENT_REGISTRATION ?? false,
     oauthClientId: parsed.OAUTH_CLIENT_ID,
     oauthClientSecret: clientSecret,
-    introspectionEndpoint: parsed.INTROSPECTION_ENDPOINT,
+    introspectionEndpoint: parsed.INTROSPECTION_ENDPOINT || `${parsed.RESOURCE_URI.replace(/\/mcp\/?$/, '')}/oauth/introspect`,
     introspectionClientSecret: clientSecret,
 
     apiBaseUrl: parsed.COGNERD_API_BASE_URL,
@@ -162,7 +162,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CognerdConfig 
     sandboxEmail: parsed.COGNERD_SANDBOX_EMAIL || parsed.TEST_COGNERD_EMAIL,
     sandboxPassword: parsed.COGNERD_SANDBOX_PASSWORD || parsed.TEST_COGNERD_PASSWORD,
     accessToken: parsed.COGNERD_ACCESS_TOKEN || undefined,
-    isMockMode: parsed.COGNERD_MOCK_MODE ?? true,
+    isMockMode: false,
   });
 }
 

@@ -51,7 +51,7 @@ export class OAuthGuard implements Guard {
       if (token) {
         const authData = await this.validateAnyToken(token);
         if (authData) {
-          context.auth = authData;
+          context.auth = { ...authData, token };
         }
       }
       return true;
@@ -70,7 +70,7 @@ export class OAuthGuard implements Guard {
       throw new Error('OAuth token validation failed: Invalid or expired access token.');
     }
 
-    context.auth = authData;
+    context.auth = { ...authData, token };
     return true;
   }
 

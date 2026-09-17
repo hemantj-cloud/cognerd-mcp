@@ -1,271 +1,169 @@
-import {
-    AGXP_STAGES,
-    AUDIT_FINDINGS,
-    BRAND,
-    CITATIONS,
-    COMPETITORS,
-    CONTENT_BRIEFS,
-    GEO_ASSETS,
-    ICP_INPUTS,
-    PERSONAS,
-    PROMPTS,
-    PROVIDERS,
-    RECENT_MENTIONS,
-    SCAN_RUNS,
-    SOV_TREND,
-    TREND,
-    VISIBILITY_ROWS,
-    filterBriefs,
-    filterCitations,
-    filterPrompts,
-    filterVisibility,
-} from './cognerd.data.js';
+/**
+ * CogNerd Tool Schema Examples
+ * Static structure examples used purely for MCP tool discovery documentation.
+ */
 
 export const AI_INSIGHTS_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
+        brand: { name: 'Brand Name', domain: 'example.com' },
         metrics: {
-            visibilityScore: TREND[TREND.length - 1].score,
-            visibilityDelta: 12.4,
-            totalMentions: 1284,
-            organicMentions: 942,
-            seededMentions: 342,
-            explicitMentions: 611,
-            citations: 317,
-            dropsDetected: 2,
+            visibilityScore: 85.0,
+            visibilityDelta: 5.2,
+            totalMentions: 120,
+            organicMentions: 90,
+            seededMentions: 30,
+            explicitMentions: 50,
+            citations: 25,
+            dropsDetected: 0,
         },
-        trend: TREND,
-        byProvider: PROVIDERS,
-        recentMentions: RECENT_MENTIONS,
+        trend: [],
+        byProvider: [],
+        recentMentions: [],
     },
 };
 
 export const AUDIENCE_PERSONAS_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
-        icp: ICP_INPUTS,
-        personas: PERSONAS,
-        totalPersonas: PERSONAS.length,
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        icp: {
+            teamSize: '10-50',
+            budget: '$20k-50k',
+            salesCycle: '30 days',
+            mustHaveTraits: 'Cloud-native',
+        },
+        personas: [],
+        totalPersonas: 0,
     },
 };
 
 export const PROMPT_INTELLIGENCE_EXAMPLE = {
     request: { status: 'active' as const },
     response: {
-        brand: BRAND,
+        brand: { name: 'Brand Name', domain: 'example.com' },
         status: 'active',
-        counts: {
-            new: PROMPTS.filter((p) => p.status === 'new').length,
-            active: PROMPTS.filter((p) => p.status === 'active').length,
-            archived: PROMPTS.filter((p) => p.status === 'archived').length,
-        },
-        prompts: filterPrompts('active'),
-        totalPrompts: filterPrompts('active').length,
+        counts: { new: 0, active: 0, archived: 0 },
+        prompts: [],
+        totalPrompts: 0,
     },
 };
 
 export const AI_VISIBILITY_EXAMPLE = {
-    request: { mentioned: 'mentioned' as const },
+    request: { engine: 'ChatGPT' as const, mentioned: 'mentioned' as const },
     response: {
-        brand: BRAND,
+        brand: { name: 'Brand Name', domain: 'example.com' },
         metrics: {
-            trackedPrompts: 24,
-            mentionedIn: 18,
-            mentionRate: 0.75,
-            trendingUp: 8,
-            avgPosition: 2.4,
+            trackedPrompts: 0,
+            mentionedIn: 0,
+            mentionRate: 0,
+            trendingUp: 0,
+            avgPosition: null,
         },
-        filters: {
-            engine: 'all',
-            mentioned: 'mentioned',
-        },
-        rows: filterVisibility({ mentioned: 'mentioned' }),
-        totalRows: filterVisibility({ mentioned: 'mentioned' }).length,
+        filters: { engine: 'ChatGPT', mentioned: 'mentioned' },
+        rows: [],
+        totalRows: 0,
     },
 };
 
 export const CITATIONS_EXAMPLE = {
-    request: { engine: 'Perplexity' as const },
+    request: { engine: 'all' as const },
     response: {
-        brand: BRAND,
+        brand: { name: 'Brand Name', domain: 'example.com' },
         metrics: {
-            totalCitations: 317,
-            sourceDomains: 78,
-            ownedCitations: 129,
-            citationCoverage: 0.247,
-            ownedShare: 0.407,
+            totalCitations: 0,
+            sourceDomains: 0,
+            ownedCitations: 0,
+            citationCoverage: 0,
+            ownedShare: 0,
         },
-        engine: 'Perplexity',
-        trend: TREND.map((p) => ({ date: p.date, citations: p.citations })),
-        byEngine: PROVIDERS.map((p) => ({ engine: p.engine, citations: p.citations, mentions: p.mentions })),
-        citations: filterCitations('Perplexity'),
-        totalCitations: filterCitations('Perplexity').length,
+        engine: 'all',
+        trend: [],
+        byEngine: [],
+        citations: [],
+        totalCitations: 0,
     },
 };
 
 export const COMPETITIVE_INTELLIGENCE_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
-        you: COMPETITORS[0],
-        competitors: COMPETITORS,
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        competitors: [],
         dimensions: ['visibility', 'sentiment', 'share', 'velocity', 'authority'],
-        shareOfVoiceTrend: SOV_TREND,
-        trackedBrands: COMPETITORS.length,
+        trackedBrands: 0,
     },
 };
 
 export const SCAN_HISTORY_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
-        runs: SCAN_RUNS,
-        totalRuns: SCAN_RUNS.length,
-        completedRuns: SCAN_RUNS.filter((r) => r.status === 'completed').length,
-        latestScore: 82,
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        history: [],
+        totalRuns: 0,
     },
 };
 
 export const AI_READINESS_AUDIT_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
-        score: 76,
-        grade: 'B',
-        crawledAt: '2026-08-23T11:40:00.000Z',
-        pagesCrawled: 86,
-        categories: [
-            { name: 'Entity clarity', score: 71 },
-            { name: 'Schema', score: 48 },
-            { name: 'Chunk structure', score: 74 },
-            { name: 'Citation surfaces', score: 62 },
-            { name: 'Proof', score: 81 },
-        ],
-        findings: AUDIT_FINDINGS,
-        critical: AUDIT_FINDINGS.filter((f) => f.severity === 'critical').length,
-        high: AUDIT_FINDINGS.filter((f) => f.severity === 'high').length,
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        score: 0,
+        grade: 'N/A',
+        findings: [],
+        totalFindings: 0,
+        highSeverity: 0,
     },
 };
 
 export const GEO_ASSETS_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
-        assets: GEO_ASSETS,
-        totalAssets: GEO_ASSETS.length,
-        published: GEO_ASSETS.filter((a) => a.status === 'published').length,
-        drafts: GEO_ASSETS.filter((a) => a.status === 'draft').length,
-        needsRefresh: GEO_ASSETS.filter((a) => a.status === 'needs_refresh').length,
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        assets: [],
+        totalAssets: 0,
+        published: 0,
+        drafts: 0,
+        needsRefresh: 0,
     },
 };
 
 export const AGXP_EXAMPLE = {
     request: {},
     response: {
-        brand: BRAND,
-        loopScore: 78,
-        stages: AGXP_STAGES,
-        lift30d: '+12.4% visibility · +21.6% citations',
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        loopScore: 0,
+        stages: [],
+        lift30d: '0%',
     },
 };
 
 export const CONTENT_STUDIO_EXAMPLE = {
-    request: { status: 'gap' as const },
+    request: { status: 'ready' as const },
     response: {
-        brand: BRAND,
-        status: 'gap',
-        counts: {
-            ready: CONTENT_BRIEFS.filter((b) => b.status === 'ready').length,
-            in_progress: CONTENT_BRIEFS.filter((b) => b.status === 'in_progress').length,
-            published: CONTENT_BRIEFS.filter((b) => b.status === 'published').length,
-            gap: CONTENT_BRIEFS.filter((b) => b.status === 'gap').length,
-        },
-        briefs: filterBriefs('gap'),
-        totalBriefs: filterBriefs('gap').length,
+        brand: { name: 'Brand Name', domain: 'example.com' },
+        status: 'ready',
+        counts: { ready: 0, in_progress: 0, published: 0, gap: 0 },
+        briefs: [],
+        totalBriefs: 0,
     },
 };
 
 export const WHOAMI_EXAMPLE = {
     request: {},
     response: {
-        user: {
-            id: '144',
-            name: 'NitroStack Partner',
-            email: 'partner@cognerd.ai',
-        },
-        brands: [
-            {
-                id: '8fd53305-fdfc-4825-b4b1-bc64233d46d7',
-                name: 'CogNerd',
-                url: 'https://www.cognerd.ai',
-                domain: 'cognerd.ai',
-            },
-        ],
+        user: { id: 'usr_123', name: 'User Name', email: 'user@example.com' },
+        brands: [{ id: 'br_123', name: 'Brand Name', url: 'https://example.com' }],
         scopes: ['cognerd'],
-        credits: {
-            balance: 410,
-            reserved: 0,
-            draftArticleCost: 30,
-        },
+        credits: { balance: 100, reserved: 0, draftArticleCost: 30 },
     },
 };
 
 export const CREDIT_BALANCE_EXAMPLE = {
     request: {},
     response: {
-        balance: 410,
+        balance: 100,
         reserved: 0,
         draftArticleCost: 30,
-        tier: 'Growth Partner',
-        totalAllocated: 500,
-        periodEnd: '2026-10-01T00:00:00Z',
-        autoRecharge: true,
-        operations: [
-            {
-                name: 'Draft Article from Brief',
-                cost: 30,
-                unit: '30 credits / article',
-                description: 'Research-grounded, fact-checked AI article with source citations. Charged only on success.',
-                isFree: false,
-            },
-            {
-                name: 'Baseline Brand Scan',
-                cost: 50,
-                unit: '50 credits / scan',
-                description: 'Full multi-engine discovery across ChatGPT, Perplexity, Gemini, and Claude.',
-                isFree: false,
-            },
-            {
-                name: 'AEO Readiness Audit',
-                cost: 0,
-                unit: 'Free',
-                description: 'Audit entity clarity, schema, chunking, and citation surface readiness.',
-                isFree: true,
-            },
-            {
-                name: 'Weak Prompts & Gap Discovery',
-                cost: 0,
-                unit: 'Free',
-                description: 'Discover buyer queries where your brand is losing to competitors.',
-                isFree: true,
-            },
-            {
-                name: 'GEO Assets Generation',
-                cost: 0,
-                unit: 'Free',
-                description: 'Generate llms.txt, JSON-LD, and entity files for AI crawlers.',
-                isFree: true,
-            },
-            {
-                name: 'Brand Memory & Context Recall',
-                cost: 0,
-                unit: 'Free',
-                description: 'Durable brand preferences and history recall across conversations.',
-                isFree: true,
-            },
-        ],
     },
 };
-

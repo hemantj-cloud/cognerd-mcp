@@ -1,14 +1,8 @@
 'use client';
 
 import { useWidgetSDK } from '@nitrostack/widgets';
-import manifest from '../widget-manifest.json';
 
-export function previewFor<T>(uri: string): T | undefined {
-    const widget = manifest.widgets.find((item) => item.uri === uri);
-    return widget?.examples?.[0]?.data as T | undefined;
-}
-
-export function useCognerdData<T>(uri: string): {
+export function useCognerdData<T>(_uri?: string): {
     isReady: boolean;
     data: T | undefined;
     live: boolean;
@@ -17,7 +11,7 @@ export function useCognerdData<T>(uri: string): {
     const live = getToolOutput<T>();
     return {
         isReady,
-        data: live ?? previewFor<T>(uri),
+        data: live ?? undefined,
         live: !!live,
     };
 }

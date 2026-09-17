@@ -79,11 +79,11 @@ export default function CreditBalanceWidget() {
     const { c, isDark } = useColors();
     const [state, setState] = useWidgetState(() => ({ filter: 'all' }));
 
-    const balance = data?.balance ?? 410;
+    const balance = data?.balance ?? 0;
     const reserved = data?.reserved ?? 0;
-    const draftCost = data?.draftArticleCost ?? 30;
-    const totalAllocated = data?.totalAllocated ?? 500;
-    const tier = data?.tier ?? 'Growth Partner';
+    const draftCost = data?.draftArticleCost ?? 0;
+    const totalAllocated = data?.totalAllocated ?? (balance > 0 ? balance : 100);
+    const tier = data?.tier ?? 'Standard';
 
     const pctRemaining = Math.min(100, Math.max(0, Math.round((balance / totalAllocated) * 100)));
     const operations = data?.operations?.length ? data.operations : DEFAULT_OPERATIONS;
