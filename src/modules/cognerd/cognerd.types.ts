@@ -390,5 +390,33 @@ export type IntegrationsStatus = {
     toolkits: ToolkitStatus[];
 };
 
+export type AllowanceDetail = {
+    enabled: boolean;
+    used: number;
+    limit: number | null;
+    remaining: number | null;
+    periodStart?: string;
+    periodEnd?: string;
+};
+
+export type RunSystemUsage = {
+    plan: {
+        code: string;
+        name: string;
+    };
+    allowances: {
+        'runs.monthly': AllowanceDetail;
+        'briefs.blog.monthly'?: AllowanceDetail;
+        'briefs.linkedin.monthly'?: AllowanceDetail;
+        'briefs.x.monthly'?: AllowanceDetail;
+        'tools.aeo_audit.daily': AllowanceDetail;
+        'tools.geo_assets.daily': AllowanceDetail;
+        'tools.llm_generation.daily'?: AllowanceDetail;
+        'tools.carousel.daily'?: AllowanceDetail;
+        'brands.max': AllowanceDetail;
+        [key: string]: AllowanceDetail | undefined;
+    };
+};
+
 
 

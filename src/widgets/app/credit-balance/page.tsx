@@ -1,121 +1,85 @@
 'use client';
 
-import { useWidgetSDK, useWidgetState } from '@nitrostack/widgets';
+import { useWidgetSDK } from '@nitrostack/widgets';
 import { WidgetShell, useColors } from '../../components/WidgetShell';
 import { MetricCard, MetricGrid } from '../../components/MetricCard';
-import { Card, GhostButton, Pill, PrimaryButton, SectionLabel } from '../../components/ui';
-import { asArray, formatNumber } from '../../lib/theme';
+import { Card, GhostButton, PrimaryButton, SectionLabel } from '../../components/ui';
 import { useCognerdData } from '../../lib/useCognerdData';
 
 export const dynamic = 'force-dynamic';
 
-interface OperationCost {
-    name: string;
-    cost: number;
-    unit: string;
-    description: string;
-    isFree?: boolean;
-}
-
-interface CreditBalanceData {
-    balance?: number;
-    reserved?: number;
-    draftArticleCost?: number;
-    tier?: string;
-    totalAllocated?: number;
+interface AllowanceDetail {
+    enabled?: boolean;
+    used?: number;
+    limit?: number | null;
+    remaining?: number | null;
+    periodStart?: string;
     periodEnd?: string;
-    autoRecharge?: boolean;
-    operations?: OperationCost[];
 }
 
-const DEFAULT_OPERATIONS: OperationCost[] = [
-    {
-        name: 'Draft Article from Brief',
-        cost: 30,
-        unit: '30 credits / article',
-        description: 'Research-grounded, fact-checked AI article with source citations. Charged only on success.',
-        isFree: false,
-    },
-    {
-        name: 'Baseline Brand Scan',
-        cost: 50,
-        unit: '50 credits / scan',
-        description: 'Full multi-engine discovery across ChatGPT, Perplexity, Gemini, and Claude.',
-        isFree: false,
-    },
-    {
-        name: 'AEO Readiness Audit',
-        cost: 0,
-        unit: 'Free',
-        description: 'Audit entity clarity, schema, chunking, and citation surface readiness.',
-        isFree: true,
-    },
-    {
-        name: 'Weak Prompts & Gap Discovery',
-        cost: 0,
-        unit: 'Free',
-        description: 'Discover buyer queries where your brand is losing to competitors.',
-        isFree: true,
-    },
-    {
-        name: 'GEO Assets Generation',
-        cost: 0,
-        unit: 'Free',
-        description: 'Generate llms.txt, JSON-LD, and entity files for AI crawlers.',
-        isFree: true,
-    },
-    {
-        name: 'Brand Memory & Context Recall',
-        cost: 0,
-        unit: 'Free',
-        description: 'Durable brand preferences and history recall across conversations.',
-        isFree: true,
-    },
-];
+interface RunSystemData {
+    plan?: {
+        code: string;
+        name: string;
+    };
+    allowances?: {
+        'runs.monthly'?: AllowanceDetail;
+        'briefs.blog.monthly'?: AllowanceDetail;
+        'briefs.linkedin.monthly'?: AllowanceDetail;
+        'briefs.x.monthly'?: AllowanceDetail;
+        'tools.aeo_audit.daily'?: AllowanceDetail;
+        'tools.geo_assets.daily'?: AllowanceDetail;
+        'tools.llm_generation.daily'?: AllowanceDetail;
+        'tools.carousel.daily'?: AllowanceDetail;
+        'brands.max'?: AllowanceDetail;
+        [key: string]: AllowanceDetail | undefined;
+    };
+    balance?: number; // legacy fallback
+}
 
-export default function CreditBalanceWidget() {
-    const { callTool, sendFollowUpMessage } = useWidgetSDK();
-    const { isReady, data } = useCognerdData<CreditBalanceData>('/credit-balance');
+export default function RunAllowanceWidget() {
+    const { callTool } = useWidgetSDK();
+    const { isReady, data } = useCognerdData<RunSystemData>('/credit-balance');
     const { c, isDark } = useColors();
-    const [state, setState] = useWidgetState(() => ({ filter: 'all' }));
 
-    const balance = data?.balance ?? 0;
-    const reserved = data?.reserved ?? 0;
-    const draftCost = data?.draftArticleCost ?? 0;
-    const totalAllocated = data?.totalAllocated ?? (balance > 0 ? balance : 100);
-    const tier = data?.tier ?? 'Standard';
+    const planName = data?.plan?.name ?? 'Partner Plan';
+    const runs = data?.allowances?.['runs.monthly'] ?? {
+        used: 0,
+        limit: 15,
+        remaining: 15,
+    };
+    const maxBrands = data?.allowances?.['brands.max'] ?? { used: 1, limit: 10, remaining: 9 };
+    const aeoDaily = data?.allowances?.['tools.aeo_audit.daily'] ?? { used: 0, limit: 5, remaining: 5 };
+    const geoDaily = data?.allowances?.['tools.geo_assets.daily'] ?? { used: 0, limit: 5, remaining: 5 };
+    const briefsLi = data?.allowances?.['briefs.linkedin.monthly'] ?? { used: 0, limit: 50, remaining: 50 };
 
-    const pctRemaining = Math.min(100, Math.max(0, Math.round((balance / totalAllocated) * 100)));
-    const operations = data?.operations?.length ? data.operations : DEFAULT_OPERATIONS;
-
-    const filteredOperations = operations.filter((op) => {
-        if (state?.filter === 'paid') return !op.isFree;
-        if (state?.filter === 'free') return !!op.isFree;
-        return true;
-    });
+    const runsLimit = runs.limit ?? 15;
+    const runsRemaining = runs.remaining ?? 15;
+    const runsUsed = runs.used ?? 0;
+    const runsPct = Math.min(100, Math.max(0, Math.round((runsRemaining / runsLimit) * 100)));
 
     return (
         <WidgetShell
-            category="Workspace Wallet"
-            title="Credit"
-            accent="Balance"
-            subtitle="Compute tokens for AEO intelligence, content drafting, and baseline scans."
+            category="Workspace Quota"
+            title="Run System"
+            accent="Allowances"
+            subtitle="Meters usage in runs, briefs, and daily tool calls per the CogNerd Run System specification."
             isReady={isReady}
             hasData={!!data}
             actions={
                 <>
                     <GhostButton onClick={() => callTool('whoami', {})}>
-                        Account profile
+                        Identity Profile
                     </GhostButton>
-                    <PrimaryButton onClick={() => callTool('get_credit_balance', {})}>
-                        Refresh
+                    <PrimaryButton onClick={() => callTool('get_run_allowance', {})}>
+                        Refresh Quotas
                     </PrimaryButton>
                 </>
             }
         >
             {data ? (
                 <>
-                    {/* Hero Balance Card */}
+                    {/* Hero Run Allowance Card */}
                     <Card
                         style={{
                             marginBottom: 14,
@@ -137,7 +101,7 @@ export default function CreditBalanceWidget() {
                                         fontWeight: 700,
                                     }}
                                 >
-                                    Spendable balance
+                                    Monthly End-to-End Runs
                                 </div>
                                 <div
                                     style={{
@@ -149,11 +113,11 @@ export default function CreditBalanceWidget() {
                                         color: c.orange,
                                     }}
                                 >
-                                    {formatNumber(balance)}{' '}
-                                    <span style={{ fontSize: 18, fontWeight: 650, color: c.ink }}>credits</span>
+                                    {runsRemaining}{' '}
+                                    <span style={{ fontSize: 18, fontWeight: 650, color: c.ink }}>runs left</span>
                                 </div>
                                 <div style={{ marginTop: 6, fontSize: 13, color: c.muted }}>
-                                    Equivalent to ~{Math.floor(balance / draftCost)} research-grounded AI draft articles
+                                    {runsUsed} consumed of {runsLimit} allocated runs this monthly period (resets 1st of month UTC)
                                 </div>
                             </div>
 
@@ -171,20 +135,20 @@ export default function CreditBalanceWidget() {
                                         textTransform: 'uppercase',
                                     }}
                                 >
-                                    Tier: {tier}
+                                    Tier: {planName}
                                 </span>
                                 <div style={{ fontSize: 11, color: c.muted, marginTop: 8 }}>
-                                    Auto-recharge: {data.autoRecharge !== false ? 'Enabled' : 'Disabled'}
+                                    Brands: {maxBrands.used ?? 1} / {maxBrands.limit ?? 10}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Progress Bar / Fuel Gauge */}
+                        {/* Progress Bar Gauge */}
                         <div style={{ marginTop: 16 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6, color: c.muted }}>
-                                <span>Monthly cycle allocation</span>
+                                <span>Run Capacity Gauge</span>
                                 <span style={{ fontWeight: 650, color: c.ink }}>
-                                    {balance} / {totalAllocated} ({pctRemaining}% remaining)
+                                    {runsRemaining} / {runsLimit} ({runsPct}% remaining)
                                 </span>
                             </div>
                             <div
@@ -199,7 +163,7 @@ export default function CreditBalanceWidget() {
                                 <div
                                     style={{
                                         height: '100%',
-                                        width: `${pctRemaining}%`,
+                                        width: `${runsPct}%`,
                                         background: c.orange,
                                         borderRadius: 999,
                                         transition: 'width 0.4s ease',
@@ -212,126 +176,51 @@ export default function CreditBalanceWidget() {
                     {/* Breakdown Metric Grid */}
                     <MetricGrid>
                         <MetricCard
-                            label="Reserved compute"
-                            value={`${reserved} cr`}
-                            hint="Active in-flight tasks"
+                            label="Daily AEO Audits"
+                            value={`${aeoDaily.remaining ?? 5} / ${aeoDaily.limit ?? 5}`}
+                            hint="Resets daily at 00:00 UTC"
                         />
                         <MetricCard
-                            label="Draft article cost"
-                            value={`${draftCost} cr`}
-                            hint="Charged only on success"
+                            label="Daily GEO Assets"
+                            value={`${geoDaily.remaining ?? 5} / ${geoDaily.limit ?? 5}`}
+                            hint="Resets daily at 00:00 UTC"
                         />
                         <MetricCard
-                            label="Audits & telemetry"
-                            value="0 cr"
-                            hint="Always 100% free"
+                            label="Monthly Briefs (LI)"
+                            value={`${briefsLi.remaining ?? 50} / ${briefsLi.limit ?? 50}`}
+                            hint="Resets on 1st of month"
                         />
                         <MetricCard
-                            label="Monthly cycle"
-                            value={`${totalAllocated} cr`}
-                            hint="Renews automatically"
+                            label="Brand Capacity"
+                            value={`${maxBrands.used ?? 1} / ${maxBrands.limit ?? 10}`}
+                            hint="Maximum brands on account"
                         />
                     </MetricGrid>
 
-                    {/* Operation Catalog Filter */}
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                        <Pill
-                            active={state?.filter === 'all'}
-                            onClick={() => setState({ filter: 'all' })}
-                        >
-                            All operations ({operations.length})
-                        </Pill>
-                        <Pill
-                            active={state?.filter === 'paid'}
-                            onClick={() => setState({ filter: 'paid' })}
-                        >
-                            Credit-based
-                        </Pill>
-                        <Pill
-                            active={state?.filter === 'free'}
-                            onClick={() => setState({ filter: 'free' })}
-                        >
-                            Free tools
-                        </Pill>
-                    </div>
-
-                    {/* Operations Pricing Catalog */}
-                    <Card>
-                        <SectionLabel hint="Standard pricing model">Operation pricing catalog</SectionLabel>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
-                            {filteredOperations.map((op, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        flexWrap: 'wrap',
-                                        gap: 10,
-                                        padding: '10px 12px',
-                                        borderRadius: 10,
-                                        background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
-                                        border: `1px solid ${c.border}`,
-                                    }}
-                                >
-                                    <div style={{ minWidth: 0, flex: '1 1 240px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <span style={{ fontSize: 14, fontWeight: 700 }}>{op.name}</span>
-                                            {op.isFree ? (
-                                                <span
-                                                    style={{
-                                                        fontSize: 10,
-                                                        padding: '1px 6px',
-                                                        borderRadius: 4,
-                                                        background: isDark ? 'rgba(52, 211, 153, 0.15)' : '#D1FAE5',
-                                                        color: c.good,
-                                                        fontWeight: 700,
-                                                    }}
-                                                >
-                                                    FREE
-                                                </span>
-                                            ) : (
-                                                <span
-                                                    style={{
-                                                        fontSize: 10,
-                                                        padding: '1px 6px',
-                                                        borderRadius: 4,
-                                                        background: c.orangeSoft,
-                                                        color: c.orange,
-                                                        fontWeight: 700,
-                                                    }}
-                                                >
-                                                    {op.cost} CREDITS
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div style={{ fontSize: 12, color: c.muted, marginTop: 3 }}>
-                                            {op.description}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: op.isFree ? c.good : c.orange }}>
-                                            {op.unit}
-                                        </span>
-                                    </div>
+                    {/* Metering Unit Specifications */}
+                    <Card style={{ marginTop: 14 }}>
+                        <SectionLabel hint="CogNerd Run System v1.0">Metering Units Reference</SectionLabel>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 10 }}>
+                            <div style={{ padding: 12, borderRadius: 8, background: isDark ? '#1C1917' : '#FAF6F2', border: `1px solid ${c.border}` }}>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: c.orange }}>End-to-End Run</div>
+                                <div style={{ fontSize: 12, color: c.muted, marginTop: 4 }}>
+                                    Full brand analysis (first scan, rescan, or weekly schedule). Consumes 1 from <code>runs.monthly</code>.
                                 </div>
-                            ))}
+                            </div>
+                            <div style={{ padding: 12, borderRadius: 8, background: isDark ? '#1C1917' : '#FAF6F2', border: `1px solid ${c.border}` }}>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: c.orange }}>Content Brief</div>
+                                <div style={{ fontSize: 12, color: c.muted, marginTop: 4 }}>
+                                    1 content brief per channel (Blog, LinkedIn, X). First draft included; up to 3 regenerations free.
+                                </div>
+                            </div>
+                            <div style={{ padding: 12, borderRadius: 8, background: isDark ? '#1C1917' : '#FAF6F2', border: `1px solid ${c.border}` }}>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: c.orange }}>Paid AI Tools</div>
+                                <div style={{ fontSize: 12, color: c.muted, marginTop: 4 }}>
+                                    AEO audit, GEO assets, and carousel generation. Metered as 5 calls each per day, resetting at 00:00 UTC.
+                                </div>
+                            </div>
                         </div>
                     </Card>
-
-                    {/* Quick Action Footer */}
-                    <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <PrimaryButton onClick={() => sendFollowUpMessage('Draft an article from my content brief')}>
-                            Draft article (30 cr)
-                        </PrimaryButton>
-                        <GhostButton onClick={() => callTool('get_audit_report', {})}>
-                            Run free AEO audit
-                        </GhostButton>
-                        <GhostButton onClick={() => sendFollowUpMessage('Show weak prompts for my brand')}>
-                            Find weak prompts
-                        </GhostButton>
-                    </div>
                 </>
             ) : null}
         </WidgetShell>

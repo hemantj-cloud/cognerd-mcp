@@ -86,7 +86,7 @@ export class CognerdTools {
 
     @Tool({
         name: 'whoami',
-        description: 'Verify current authenticated user, visible brands, granted scopes, and wallet credit balance.',
+        description: 'Verify current authenticated user, visible brands, granted scopes, and workspace run allowances.',
         inputSchema: z.object({}),
         examples: WHOAMI_EXAMPLE,
     })
@@ -100,8 +100,23 @@ export class CognerdTools {
     }
 
     @Tool({
+        name: 'get_run_allowance',
+        description:
+            'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System.',
+        inputSchema: z.object({}),
+    })
+    @Widget(cognerdWidget('credit-balance'))
+    @UseGuards(OAuthGuard)
+    async getRunAllowance(_args: Record<string, any>, ctx: ExecutionContext) {
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getRunAllowance(token);
+        ctx.logger.info('Run allowance', { plan: data.plan?.name, runsRemaining: data.allowances?.['runs.monthly']?.remaining });
+        return data;
+    }
+
+    @Tool({
         name: 'get_credit_balance',
-        description: 'Retrieve current credit balance and neuron reservation status for the authenticated workspace.',
+        description: 'Retrieve current credit balance and neuron reservation status for the authenticated workspace (legacy compatibility).',
         inputSchema: z.object({}),
         examples: CREDIT_BALANCE_EXAMPLE,
     })
@@ -319,7 +334,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_geo_assets',
         description:
-            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (30 credits).',
+            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (consumes 1 daily GEO tool allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
@@ -334,7 +349,7 @@ export class CognerdTools {
     @Tool({
         name: 'trigger_aeo_audit',
         description:
-            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (50 credits).',
+            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (consumes 1 daily AEO tool allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)

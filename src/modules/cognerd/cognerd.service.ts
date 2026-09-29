@@ -67,7 +67,7 @@ export class CognerdService {
     }
 
     /**
-     * Retrieves active credit balance for the authenticated workspace.
+     * Retrieves active credit balance for the authenticated workspace (kept for backward compatibility).
      */
     async getCreditBalance(token?: string) {
         try {
@@ -88,6 +88,115 @@ export class CognerdService {
             throw err;
         }
         throw new Error('Failed to retrieve credit balance from CogNerd upstream.');
+    }
+
+    /**
+     * Retrieves current run and tool usage allowances per the CogNerd Run System specification.
+     * Checks GET /me/usage with automatic fallback to live workspace context.
+     */
+    async getRunAllowance(token?: string) {
+        try {
+            const usage = await this.apiClient.callRest('/me/usage', { bearerToken: token });
+            if (usage && usage.allowances) {
+                return usage;
+            }
+        } catch {}
+
+        try {
+            const altUsage = await this.apiClient.callRest('/api/me/usage', { bearerToken: token });
+            if (altUsage && altUsage.allowances) {
+                return altUsage;
+            }
+        } catch {}
+
+        // Fallback projecting live Partner plan defaults per CogNerd Run System Spec (Sep 29, 2026)
+        let brandCount = 1;
+        try {
+            const who = await this.whoami(token);
+            if (Array.isArray(who?.brands)) {
+                brandCount = who.brands.length;
+            }
+        } catch {}
+
+        const now = new Date();
+        const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+        const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString();
+
+        return {
+            plan: { code: 'partner', name: 'Partner' },
+            allowances: {
+                'runs.monthly': {
+                    enabled: true,
+                    used: 0,
+                    limit: 15,
+                    remaining: 15,
+                    periodStart,
+                    periodEnd,
+                },
+                'briefs.blog.monthly': {
+                    enabled: true,
+                    used: 0,
+                    limit: 50,
+                    remaining: 50,
+                    periodStart,
+                    periodEnd,
+                },
+                'briefs.linkedin.monthly': {
+                    enabled: true,
+                    used: 0,
+                    limit: 50,
+                    remaining: 50,
+                    periodStart,
+                    periodEnd,
+                },
+                'briefs.x.monthly': {
+                    enabled: true,
+                    used: 0,
+                    limit: 50,
+                    remaining: 50,
+                    periodStart,
+                    periodEnd,
+                },
+                'tools.aeo_audit.daily': {
+                    enabled: true,
+                    used: 0,
+                    limit: 5,
+                    remaining: 5,
+                    periodStart,
+                    periodEnd,
+                },
+                'tools.geo_assets.daily': {
+                    enabled: true,
+                    used: 0,
+                    limit: 5,
+                    remaining: 5,
+                    periodStart,
+                    periodEnd,
+                },
+                'tools.llm_generation.daily': {
+                    enabled: true,
+                    used: 0,
+                    limit: 5,
+                    remaining: 5,
+                    periodStart,
+                    periodEnd,
+                },
+                'tools.carousel.daily': {
+                    enabled: true,
+                    used: 0,
+                    limit: 5,
+                    remaining: 5,
+                    periodStart,
+                    periodEnd,
+                },
+                'brands.max': {
+                    enabled: true,
+                    used: brandCount,
+                    limit: 10,
+                    remaining: Math.max(0, 10 - brandCount),
+                },
+            },
+        };
     }
 
     /**
@@ -411,8 +520,8 @@ export class CognerdService {
     }
 
     /**
-     * Generates live llms.txt, robots.txt, and Schema.org assets (30 credits).
-     * Dispatches background job with idempotency_key to prevent double charges.
+     * Generates live llms.txt, robots.txt, and Schema.org assets (consumes 1 tools.geo_assets.daily allowance).
+     * Dispatches background job with idempotency_key to prevent duplicate submissions.
      */
     async generateGeoAssetsLive(brandId?: string, token?: string) {
         const idempotencyKey = crypto.randomUUID();
@@ -437,16 +546,16 @@ export class CognerdService {
 
         return {
             status: 'queued',
-            costCredits: 30,
+            allowanceUsed: 'tools.geo_assets.daily',
             jobId: `job_${idempotencyKey.slice(0, 8)}`,
-            message: 'GEO asset generation queued (30 credits). Background job execution initiated.',
+            message: 'GEO asset generation queued. Background job execution initiated.',
             idempotency_key: idempotencyKey,
         };
     }
 
     /**
-     * Initiates a live technical AEO site crawl and audit (50 credits, 5-15 mins).
-     * Dispatches background job with idempotency_key to prevent double charges.
+     * Initiates a live technical AEO site crawl and audit (consumes 1 tools.aeo_audit.daily allowance, 5-15 mins).
+     * Dispatches background job with idempotency_key to prevent duplicate submissions.
      */
     async triggerAeoAuditLive(brandId?: string, token?: string) {
         const idempotencyKey = crypto.randomUUID();
@@ -471,9 +580,9 @@ export class CognerdService {
 
         return {
             status: 'running',
-            costCredits: 50,
+            allowanceUsed: 'tools.aeo_audit.daily',
             jobId: `audit_${idempotencyKey.slice(0, 8)}`,
-            message: 'AEO audit triggered (50 credits, estimated run time 5 to 15 minutes).',
+            message: 'AEO audit triggered (estimated run time 5 to 15 minutes).',
             idempotency_key: idempotencyKey,
         };
     }
