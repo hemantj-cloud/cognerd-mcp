@@ -118,9 +118,30 @@ export class CognerdApiClient {
 
       return response.data;
     } catch (error: any) {
-      const errMsg = error.response?.data?.message || error.response?.data?.error || error.message;
+      const errMsg = this.formatErrorMessage(error);
       throw new Error(`Upstream REST ${options.method || 'GET'} ${endpoint} failed (${error.response?.status || 'Network Error'}): ${errMsg}`);
     }
+  }
+
+  private formatErrorMessage(error: any): string {
+    if (!error) return 'Unknown error';
+    const data = error.response?.data;
+    if (data) {
+      if (typeof data === 'string') return data;
+      if (typeof data.message === 'string') return data.message;
+      if (typeof data.error === 'string') return data.error;
+      if (typeof data.detail === 'string') return data.detail;
+      if (data.message && typeof data.message === 'object') {
+        return data.message.message || JSON.stringify(data.message);
+      }
+      if (data.error && typeof data.error === 'object') {
+        return data.error.message || JSON.stringify(data.error);
+      }
+      try {
+        return JSON.stringify(data);
+      } catch {}
+    }
+    return error.message || String(error);
   }
 
   /**

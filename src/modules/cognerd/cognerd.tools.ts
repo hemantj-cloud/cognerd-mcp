@@ -31,9 +31,12 @@ function cognerdWidget(route: string) {
 }
 
 function extractToken(ctx: ExecutionContext): string | undefined {
-    const authHeader = ctx.metadata?.authorization as string | undefined;
-    if (authHeader?.startsWith('Bearer ')) {
-        return authHeader.substring(7);
+    const rawAuth = (ctx.metadata?.authorization || ctx.metadata?.Authorization) as string | undefined;
+    if (rawAuth?.startsWith('Bearer ')) {
+        return rawAuth.substring(7).trim();
+    }
+    if (rawAuth && !rawAuth.includes(' ') && (rawAuth.startsWith('cgnrd_') || rawAuth.length >= 10)) {
+        return rawAuth.trim();
     }
     return (ctx.auth as any)?.token || (ctx.metadata?._oauth as string) || (ctx.metadata?.token as string) || undefined;
 }
@@ -117,6 +120,7 @@ export class CognerdTools {
             'Find buyer intent prompts where this brand is losing or invisible in AI engine answers while competitors are cited.',
         inputSchema: BrandScopeSchema,
     })
+    @Widget(cognerdWidget('prompt-intelligence'))
     @UseGuards(OAuthGuard)
     async getWeakPrompts(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const token = extractToken(ctx);
@@ -261,14 +265,17 @@ export class CognerdTools {
         name: 'get_geo_assets',
         description:
             'GEO assets for the brand: llms.txt, schema, robots, entity graph, FAQ extract, and AI sitemap — plus publish status.',
-        inputSchema: BrandScopeSchema,
+        inputSchema: BrandScopeSchema.extend({
+            jobId: z.string().optional().describe('Job ID of the generated assets run (returned by generate_geo_assets)'),
+        }),
         examples: GEO_ASSETS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('geo-assets'))
-    async getGeoAssets(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+    async getGeoAssets(args: { brandId?: string; jobId?: string }, ctx: ExecutionContext) {
         const token = extractToken(ctx);
-        const data = await this.cognerd.getGeoAssets(args.brandId, token);
+        const targetId = args.jobId || args.brandId;
+        const data = await this.cognerd.getGeoAssets(targetId, token);
         ctx.logger.info('GEO assets', { total: data.totalAssets, published: data.published });
         return data;
     }
@@ -312,7 +319,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_geo_assets',
         description:
-            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (20 credits).',
+            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (30 credits).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
@@ -342,14 +349,17 @@ export class CognerdTools {
     @Tool({
         name: 'get_latest_aeo_report',
         description:
-            'Fetches the latest stored technical AEO audit report, crawl findings, and recommendation breakdown.',
-        inputSchema: BrandScopeSchema,
+            'Fetches technical AEO audit report, crawl findings, and recommendation breakdown by audit job_id or brand.',
+        inputSchema: BrandScopeSchema.extend({
+            jobId: z.string().optional().describe('Job ID of the AEO audit run (returned by trigger_aeo_audit)'),
+        }),
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
-    async getLatestAeoReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+    async getLatestAeoReport(args: { brandId?: string; jobId?: string }, ctx: ExecutionContext) {
         const token = extractToken(ctx);
-        const data = await this.cognerd.getLatestAeoReport(args.brandId, token);
+        const targetId = args.jobId || args.brandId;
+        const data = await this.cognerd.getLatestAeoReport(targetId, token);
         ctx.logger.info('Latest AEO report', { score: data?.score, grade: data?.grade });
         return data;
     }

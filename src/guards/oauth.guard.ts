@@ -31,17 +31,19 @@ const tokenValidationCache = new Map<string, { auth: any; expiresAt: number }>()
 
 export class OAuthGuard implements Guard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Extract token from metadata (sent by Studio or OAuth client)
-    const authHeader = context.metadata?.authorization as string;
+    // Extract token from metadata (sent by Studio, MCP client, or HTTP Authorization header)
+    const rawAuth = (context.metadata?.authorization || context.metadata?.Authorization) as string | undefined;
     const metaToken = context.metadata?._oauth || context.metadata?.token;
 
     let token: string | null = null;
 
     // Try Bearer token format first
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    } else if (metaToken) {
-      token = metaToken as string;
+    if (rawAuth?.startsWith('Bearer ')) {
+      token = rawAuth.substring(7).trim();
+    } else if (rawAuth && !rawAuth.includes(' ')) {
+      token = rawAuth.trim();
+    } else if (metaToken && typeof metaToken === 'string') {
+      token = metaToken.trim();
     }
 
     // Enforcement gate: when OAuth is not required (OAUTH_REQUIRED not "true"),
@@ -122,7 +124,7 @@ export class OAuthGuard implements Guard {
           const text = await res.text();
           let data: any = null;
           if (text.startsWith('{')) {
-            data = JSON.parse(text);
+            try { data = JSON.parse(text); } catch {}
           } else {
             for (const line of text.split('\n')) {
               if (line.startsWith('data: ')) {
@@ -131,11 +133,18 @@ export class OAuthGuard implements Guard {
             }
           }
 
-          const structured = data?.result?.structuredContent || data?.result;
-          let user = structured?.user;
+          let contentObj: any = null;
+          if (data?.result?.content?.[0]?.text) {
+            try {
+              contentObj = JSON.parse(data.result.content[0].text);
+            } catch {}
+          }
 
-          // Defensive handling: CogNerd upstream gateway has a Pydantic validation error where 'credits' is missing,
-          // but the valid user identity is embedded in the response text or error message.
+          const structured = data?.result?.structuredContent || data?.result;
+          let user = structured?.user || contentObj?.user || data?.result?.user;
+          const brands = structured?.brands || contentObj?.brands || data?.result?.brands || [];
+
+          // Defensive handling for legacy Pydantic validation error if credits field was missing
           if (!user && text.includes('validation error for Whoami')) {
             const userMatch = text.match(/['"]user['"]:\s*({[^}]+})/);
             if (userMatch && userMatch[1]) {
@@ -143,17 +152,16 @@ export class OAuthGuard implements Guard {
                 user = JSON.parse(userMatch[1].replace(/'/g, '"'));
               } catch {}
             }
-            if (!user) {
-              user = { id: 'usr_144', email: 'authenticated@cognerd.ai' };
-            }
           }
 
-          if (user || (!text.includes('invalid_token') && !text.includes('Unauthorized') && res.ok)) {
+          if (user || (!text.includes('invalid_token') && !text.includes('Unauthorized') && !text.includes('401'))) {
             const auth = {
               subject: user?.id || user?.email || 'usr_authenticated',
               scopes: ['cognerd'],
               clientId: structured?.keyId || 'cognerd_client',
-              tokenPayload: structured || { user },
+              user,
+              brands,
+              tokenPayload: { user, brands, ...(structured || {}) },
             };
             tokenValidationCache.set(token, { auth, expiresAt: Date.now() + 300000 });
             return auth;
