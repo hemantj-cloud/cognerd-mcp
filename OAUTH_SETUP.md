@@ -62,7 +62,7 @@ The server implements **zero-storage, dynamic per-caller authentication**:
 - **Stateless Execution**: The server does not store user passwords or personal credentials in `.env`.
 - **Client Token Forwarding**: Every incoming client request provides an `Authorization: Bearer <token>` header.
 - **Upstream Delegation**: The MCP server dynamically extracts the caller's token in `extractToken(ctx)` and forwards it directly to `https://api.cognerd.in`.
-- **Isolated User Context**: Each user operates strictly within their own workspace, brand profiles, and credit allowances.
+- **Isolated User Context**: Each user operates strictly within their own workspace, brand profiles, and Run System allowances.
 
 ---
 

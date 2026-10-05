@@ -45,11 +45,22 @@ export class CognerdService {
         try {
             const profile = await this.apiClient.callRest<any>('/api/brand-monitor/brand-profile/current', { bearerToken: token });
             if (profile && (profile.brand || profile.user)) {
+                const brands = profile.brand ? [profile.brand] : [];
                 return {
                     user: profile.user || { id: profile.brand?.billingUserId ? `usr_${profile.brand.billingUserId}` : 'usr_authenticated', email: profile.brand?.domain ? `admin@${profile.brand.domain}` : 'user@cognerd.ai' },
-                    brands: profile.brand ? [profile.brand] : [],
+                    brands,
                     scopes: ['cognerd'],
-                    credits: { balance: profile.brand?.credits ?? 500, reserved: 0, draftArticleCost: 30 },
+                    plan: { code: 'partner', name: 'Partner' },
+                    allowances: {
+                        'runs.monthly': { enabled: true, used: 0, limit: 15, remaining: 15 },
+                        'briefs.blog.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                        'briefs.linkedin.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                        'briefs.x.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                        'tools.aeo_audit.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+                        'tools.geo_assets.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+                        'brands.max': { enabled: true, used: brands.length, limit: 10, remaining: Math.max(0, 10 - brands.length) },
+                    },
+                    runs: { used: 0, limit: 15, remaining: 15 },
                 };
             }
         } catch {}
@@ -77,11 +88,22 @@ export class CognerdService {
                             .replace(/False/g, 'false');
                         const extracted = JSON.parse(sanitized);
                         if (extracted.user) {
+                            const brands = extracted.brands || [];
                             return {
                                 user: extracted.user,
-                                brands: extracted.brands || [],
+                                brands,
                                 scopes: ['cognerd'],
-                                credits: extracted.credits || { balance: 0, reserved: 0, draftArticleCost: 30 },
+                                plan: { code: 'partner', name: 'Partner' },
+                                allowances: extracted.allowances || {
+                                    'runs.monthly': { enabled: true, used: 0, limit: 15, remaining: 15 },
+                                    'briefs.blog.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                                    'briefs.linkedin.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                                    'briefs.x.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                                    'tools.aeo_audit.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+                                    'tools.geo_assets.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+                                    'brands.max': { enabled: true, used: brands.length, limit: 10, remaining: Math.max(0, 10 - brands.length) },
+                                },
+                                runs: extracted.runs || { used: 0, limit: 15, remaining: 15 },
                             };
                         }
                     }
@@ -93,52 +115,42 @@ export class CognerdService {
             user: { id: 'usr_authenticated', email: 'user@cognerd.ai', role: 'user' },
             brands: [],
             scopes: ['cognerd'],
-            credits: { balance: 500, reserved: 0, draftArticleCost: 30 },
+            plan: { code: 'partner', name: 'Partner' },
+            allowances: {
+                'runs.monthly': { enabled: true, used: 0, limit: 15, remaining: 15 },
+                'briefs.blog.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                'briefs.linkedin.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                'briefs.x.monthly': { enabled: true, used: 0, limit: 50, remaining: 50 },
+                'tools.aeo_audit.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+                'tools.geo_assets.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+                'brands.max': { enabled: true, used: 1, limit: 10, remaining: 9 },
+            },
+            runs: { used: 0, limit: 15, remaining: 15 },
         };
     }
 
     /**
-     * Retrieves active credit balance for the authenticated workspace (kept for backward compatibility).
+     * Retrieves active allowance status for the authenticated workspace (kept for backward compatibility with get_credit_balance).
      */
     async getCreditBalance(token?: string) {
-        // Direct REST endpoint on CogNerd API
         try {
-            const profile = await this.apiClient.callRest<any>('/api/brand-monitor/brand-profile/current', { bearerToken: token });
-            if (profile && profile.brand) {
-                return {
-                    balance: profile.brand.credits ?? 500,
-                    reserved: 0,
-                    draftArticleCost: 30,
-                    message: 'Active credit balance retrieved from CogNerd workspace profile.',
-                };
-            }
-        } catch {}
-
-        try {
-            const live = await this.apiClient.callTool('get_credit_balance', {}, token);
-            if (live && typeof live === 'object' && Object.keys(live).length > 0) {
-                return live;
+            const result = await this.apiClient.callTool('get_credit_balance', {}, token);
+            if (result && typeof result.balance === 'number') {
+                return result;
             }
         } catch (err: any) {
-            const errMsg = err.message || '';
+            const errMsg = err?.message || '';
             if (errMsg.includes('401') || errMsg.includes('Unauthorized') || errMsg.includes('Forbidden')) {
                 throw err;
             }
-            if (errMsg.includes('Brand not found') || errMsg.includes('no brands attached')) {
-                return {
-                    balance: 0,
-                    reserved: 0,
-                    draftArticleCost: 30,
-                    message: 'No brand attached to this token yet. Use create_brand or preview_brand_from_url to onboard.',
-                };
-            }
         }
-
+        const usage = await this.getRunAllowance(token);
         return {
-            balance: 500,
+            balance: usage?.allowances?.['runs.monthly']?.remaining ?? 15,
             reserved: 0,
-            draftArticleCost: 30,
-            message: 'Active credit balance retrieved from CogNerd workspace profile.',
+            draftArticleCost: 0,
+            allowances: usage.allowances,
+            plan: usage.plan,
         };
     }
 
@@ -906,7 +918,7 @@ export class CognerdService {
         return {
             id: `proj_${Date.now()}`,
             outline: ['Overview', 'Key Findings', 'Next Steps'],
-            creditsReserved: 30,
+            allowanceConsumed: 'briefs.blog.monthly',
             status: 'coming_soon',
             message: 'Article wizard is pending CogNerd token authentication support for web API routes.',
         };
