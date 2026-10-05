@@ -86,7 +86,7 @@ export class CognerdTools {
 
     @Tool({
         name: 'whoami',
-        description: 'Verify current authenticated user, visible brands, granted scopes, and workspace run allowances.',
+        description: 'Verify current authenticated user, visible brands, granted scopes, and workspace run allowances. Standalone tool.',
         inputSchema: z.object({}),
         examples: WHOAMI_EXAMPLE,
     })
@@ -102,7 +102,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_run_allowance',
         description:
-            'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System.',
+            'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System. Standalone tool.',
         inputSchema: z.object({}),
         examples: RUN_ALLOWANCE_EXAMPLE,
     })
@@ -117,7 +117,7 @@ export class CognerdTools {
 
     @Tool({
         name: 'get_credit_balance',
-        description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification).',
+        description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification). Standalone tool.',
         inputSchema: z.object({}),
         examples: RUN_ALLOWANCE_EXAMPLE,
     })
@@ -133,7 +133,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_weak_prompts',
         description:
-            'Find buyer intent prompts where this brand is losing or invisible in AI engine answers while competitors are cited.',
+            'Retrieve ONLY weak or losing prompt opportunities where the brand has low visibility. Standalone tool: DO NOT invoke alongside get_prompt_intelligence, get_ai_visibility, or other tools in the same turn.',
         inputSchema: BrandScopeSchema,
     })
     @Widget(cognerdWidget('prompt-intelligence'))
@@ -148,7 +148,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_ai_insights',
         description:
-            'Open the CogNerd AI Insights dashboard: visibility score, mentions, citations, drops, trend, and mentions by engine. Use this first for a brand health snapshot.',
+            'Open the CogNerd AI Insights overview dashboard: visibility score, mentions, citations, drops, trend, and mentions by engine. Standalone tool: DO NOT invoke alongside get_ai_visibility or get_citations.',
         inputSchema: BrandScopeSchema,
         examples: AI_INSIGHTS_EXAMPLE,
     })
@@ -165,7 +165,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_audience_personas',
         description:
-            'Show detected audience personas and ICP inputs used to seed CogNerd prompt scenarios for the brand.',
+            'Show detected audience personas and ICP inputs used to seed CogNerd prompt scenarios for the brand. Standalone tool.',
         inputSchema: BrandScopeSchema,
         examples: AUDIENCE_PERSONAS_EXAMPLE,
     })
@@ -181,7 +181,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_prompt_intelligence',
         description:
-            'List buyer prompts in New or Active. Generate-style inventory of questions audiences ask AI engines about the brand.',
+            'Retrieve the active prompt scenario catalog and buyer question inventory. Standalone tool: DO NOT invoke if user asks specifically for weak prompts, citations, or visibility table.',
         inputSchema: PromptIntelSchema,
         examples: PROMPT_INTELLIGENCE_EXAMPLE,
     })
@@ -197,7 +197,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_ai_visibility',
         description:
-            'Every prompt the brand competes in, ranked by impact: mentioned, cited, position, sources, and engine.',
+            'Retrieve the detailed AI engine visibility matrix and citation table (positions, mention rates, sources). Standalone tool: DO NOT invoke alongside get_weak_prompts or get_prompt_intelligence.',
         inputSchema: VisibilitySchema,
         examples: AI_VISIBILITY_EXAMPLE,
     })
@@ -216,7 +216,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_citations',
         description:
-            'Every source AI engines cite when they mention the brand, plus owned pages that get picked up.',
+            'Every source AI engines cite when they mention the brand, plus owned pages that get picked up. Standalone tool: DO NOT invoke alongside get_ai_visibility.',
         inputSchema: CitationsSchema,
         examples: CITATIONS_EXAMPLE,
     })
@@ -232,7 +232,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_competitive_intelligence',
         description:
-            'Share of voice, sentiment, mention velocity, and authority versus tracked competitors.',
+            'Share of voice, sentiment, mention velocity, and authority versus tracked competitors. Standalone tool.',
         inputSchema: BrandScopeSchema,
         examples: COMPETITIVE_INTELLIGENCE_EXAMPLE,
     })
@@ -248,7 +248,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_scan_history',
         description:
-            'Past CogNerd analysis runs: status, dates, prompt volume, mentions, citations, and visibility score movement.',
+            'Past CogNerd analysis runs: status, dates, prompt volume, mentions, citations, and visibility score movement. Standalone tool.',
         inputSchema: BrandScopeSchema,
         examples: SCAN_HISTORY_EXAMPLE,
     })
@@ -264,7 +264,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_ai_readiness_audit',
         description:
-            'AEO / answer-readiness audit: crawl score, schema, chunk structure, entity clarity, and citation-surface findings.',
+            'AEO / answer-readiness audit: crawl score, schema, chunk structure, entity clarity, and citation-surface findings. Standalone tool.',
         inputSchema: BrandScopeSchema,
         examples: AI_READINESS_AUDIT_EXAMPLE,
     })
@@ -280,7 +280,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_geo_assets',
         description:
-            'GEO assets for the brand: llms.txt, schema, robots, entity graph, FAQ extract, and AI sitemap — plus publish status.',
+            'GEO assets for the brand: llms.txt, schema, robots, entity graph, FAQ extract, and AI sitemap — plus publish status. Standalone tool.',
         inputSchema: BrandScopeSchema.extend({
             jobId: z.string().optional().describe('Job ID of the generated assets run (returned by generate_geo_assets)'),
         }),
@@ -299,7 +299,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_agxp',
         description:
-            'AGXP (AI Growth Experience Platform) loop: Connect, Presence, Prompts, Gaps, Publish, and Lift scores for the brand.',
+            'AGXP (AI Growth Experience Platform) loop: Connect, Presence, Prompts, Gaps, Publish, and Lift scores for the brand. Standalone tool.',
         inputSchema: BrandScopeSchema,
         examples: AGXP_EXAMPLE,
     })
@@ -315,7 +315,7 @@ export class CognerdTools {
     @Tool({
         name: 'get_content_studio',
         description:
-            'Content Studio briefs generated from visibility gaps: target prompt, outline, estimated citation lift, and production status.',
+            'Content Studio briefs generated from visibility gaps: target prompt, outline, estimated citation lift, and production status. Standalone tool.',
         inputSchema: ContentStudioSchema,
         examples: CONTENT_STUDIO_EXAMPLE,
     })

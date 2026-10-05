@@ -2,6 +2,8 @@
 
 These prompts query AI engine answer shares (ChatGPT, Claude, Perplexity, Gemini), citation sources, weak prompt opportunities, and the AGXP flywheel score.
 
+> **Execution Note**: Each prompt is strictly scoped with single-tool execution constraints to ensure fast response times and prevent ChatGPT from rendering multiple redundant widgets.
+
 ---
 
 ## 4. `get_weak_prompts`
@@ -13,14 +15,14 @@ Identifies underperforming or high-risk prompts where the brand has low or decli
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Which buyer prompts or queries are we currently losing or underperforming on across AI answer engines?
+Show only our underperforming buyer prompts and visibility gaps across AI engines. Call ONLY the get_weak_prompts tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Use get_weak_prompts to identify our high-priority prompt gaps and underperforming AI search queries.
+Execute ONLY the get_weak_prompts tool to identify our high-priority prompt gaps and underperforming AI search queries. Do not call any other tools.
 ```
 
 ---
@@ -34,14 +36,14 @@ Retrieves AI search performance trends, mention rates across major models, and v
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Give me an AI engine visibility summary: how often are we mentioned, what is our trend, and how do we split across ChatGPT and Claude?
+Give me an AI engine visibility overview: overall score, mention trajectory, and model breakdown. Call ONLY the get_ai_insights tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute get_ai_insights to view our brand's latest AI search intelligence metrics, visibility deltas, and model distribution.
+Execute ONLY the get_ai_insights tool to view our brand's latest AI search intelligence metrics, visibility deltas, and model distribution. Do not call any other tools.
 ```
 
 ---
@@ -55,14 +57,14 @@ Retrieves the comprehensive tracked prompt database with status, volume, and eng
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Show our full prompt intelligence catalog and search volume rankings across AI engines.
+Show our full prompt intelligence catalog and search volume rankings across AI engines. Call ONLY the get_prompt_intelligence tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Run get_prompt_intelligence with status="active" to review all active buyer prompts and their engine coverage.
+Run ONLY the get_prompt_intelligence tool with status="active" to review all active buyer prompts and their engine coverage. Do not call any other tools.
 ```
 
 ---
@@ -76,14 +78,14 @@ Pulls multi-engine AI visibility analytics with mention breakdown, position trac
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Show our AI search visibility report and mention rate across ChatGPT and Claude.
+Show our detailed AI search visibility matrix and citation table across engines. Call ONLY the get_ai_visibility tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call get_ai_visibility with engine="ChatGPT" and mentioned="true" to see all prompts where ChatGPT actively cites our brand.
+Call ONLY the get_ai_visibility tool with engine="ChatGPT" and mentioned="true" to see all prompts where ChatGPT actively cites our brand. Do not call any other tools.
 ```
 
 ---
@@ -97,14 +99,14 @@ Inspects brand citation references, referring authority domains, and owned citat
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Which websites and domains are being cited by AI models when they talk about our brand?
+Which websites and domains are being cited by AI models when they talk about our brand? Call ONLY the get_citations tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Use get_citations to analyze our AI citation sources, domain coverage ratio, and owned vs earned citation split.
+Use ONLY the get_citations tool to analyze our AI citation sources, domain coverage ratio, and owned vs earned citation split. Do not call any other tools.
 ```
 
 ---
@@ -118,14 +120,14 @@ Retrieves share-of-voice comparisons and citation overlaps against tracked indus
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-How does our AI share-of-voice and citation presence compare against our main competitors?
+How does our AI share-of-voice and citation presence compare against our main competitors? Call ONLY the get_competitive_intelligence tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Run get_competitive_intelligence to display competitor overlap, AI mention shares, and positioning benchmarks.
+Run ONLY the get_competitive_intelligence tool to display competitor overlap, AI mention shares, and positioning benchmarks. Do not call any other tools.
 ```
 
 ---
@@ -139,14 +141,14 @@ Returns past AI crawler scan executions, engine coverage timelines, and audit lo
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Show the history of our recent AI search scans and audit crawl runs.
+Show the history of our recent AI search scans and audit crawl runs. Call ONLY the get_scan_history tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call get_scan_history to inspect recent scan batches, run timestamps, and completed crawler passes.
+Call ONLY the get_scan_history tool to inspect recent scan batches, run timestamps, and completed crawler passes. Do not call any other tools.
 ```
 
 ---
@@ -160,12 +162,12 @@ Fetches the Autonomous Generative Experience Platform (AGXP) flywheel loop score
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-What is our AGXP loop score and how are we progressing through the 6 generative engine optimization stages?
+What is our AGXP loop score and how are we progressing through the 6 generative engine optimization stages? Call ONLY the get_agxp tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute get_agxp to review our flywheel loop score, 30-day lift, and stage-by-stage maturity metrics.
+Execute ONLY the get_agxp tool to review our flywheel loop score, 30-day lift, and stage-by-stage maturity metrics. Do not call any other tools.
 ```

@@ -126,35 +126,41 @@ export default function AiVisibilityWidget() {
                             <span>Mentions</span>
                             <span>Sources</span>
                         </div>
-                        {asArray(data.rows).map((row) => (
-                            <div
-                                key={row.id}
-                                style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1.6fr 0.6fr 0.5fr 0.5fr 0.5fr 1fr',
-                                    gap: 8,
-                                    padding: '12px',
-                                    fontSize: 12,
-                                    borderBottom: `1px solid ${c.border}`,
-                                    alignItems: 'center',
-                                }}
-                            >
-                                <div>
-                                    <div style={{ fontWeight: 650 }}>{row.prompt}</div>
-                                    <div style={{ color: c.muted, marginTop: 2 }}>{row.engine}</div>
-                                </div>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <StatusDot tone={row.mentioned ? 'good' : 'gap'} />
-                                    {row.mentioned ? 'Yes' : 'No'}
-                                </span>
-                                <span>{row.cited ? 'Yes' : 'No'}</span>
-                                <span>{row.position ?? '—'}</span>
-                                <span>{row.mentions}</span>
-                                <span style={{ color: c.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {asArray(row.sources).join(', ') || '—'}
-                                </span>
+                        {asArray(data.rows).length === 0 ? (
+                            <div style={{ padding: '32px 16px', textAlign: 'center', color: c.muted, fontSize: 13 }}>
+                                No tracked prompts match the selected filter. Select &quot;All platforms&quot; or click &quot;Run prompts&quot; above to initiate a scan.
                             </div>
-                        ))}
+                        ) : (
+                            asArray(data.rows).map((row) => (
+                                <div
+                                    key={row.id}
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1.6fr 0.6fr 0.5fr 0.5fr 0.5fr 1fr',
+                                        gap: 8,
+                                        padding: '12px',
+                                        fontSize: 12,
+                                        borderBottom: `1px solid ${c.border}`,
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <div>
+                                        <div style={{ fontWeight: 650 }}>{row.prompt}</div>
+                                        <div style={{ color: c.muted, marginTop: 2 }}>{row.engine}</div>
+                                    </div>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <StatusDot tone={row.mentioned ? 'good' : 'gap'} />
+                                        {row.mentioned ? 'Yes' : 'No'}
+                                    </span>
+                                    <span>{row.cited ? 'Yes' : 'No'}</span>
+                                    <span>{row.position ?? '—'}</span>
+                                    <span>{row.mentions}</span>
+                                    <span style={{ color: c.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {asArray(row.sources).join(', ') || '—'}
+                                    </span>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </>
             ) : null}

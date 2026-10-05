@@ -2,6 +2,8 @@
 
 These prompts test deep telemetry connectors: Google Search Console (clicks, impressions, queries), Google Analytics 4 (channels, AI referral shares), Microsoft Clarity (heatmaps, rage clicks, dead clicks), Google Ads, and third-party integration health.
 
+> **Execution Note**: Each prompt is strictly scoped with single-tool execution constraints to ensure fast response times and prevent ChatGPT from rendering multiple redundant widgets.
+
 ---
 
 ## 34. `get_search_console_report`
@@ -13,14 +15,14 @@ Pulls live Google Search Console telemetry: organic clicks, impressions, CTR, an
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Show our Google Search Console performance for the last 30 days: total clicks, impressions, and top ranking queries.
+Show our Google Search Console performance for the last 30 days: total clicks, impressions, and top ranking queries. Call ONLY the get_search_console_report tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute get_search_console_report with days=30 to inspect organic search telemetry and click-through rates.
+Execute ONLY the get_search_console_report tool with days=30 to inspect organic search telemetry and click-through rates. Do not call any other tools.
 ```
 
 ---
@@ -34,14 +36,14 @@ Lists verified Google Search Console site properties connected to the workspace.
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Which website domains and subdomains are verified in our connected Google Search Console account?
+Which website domains and subdomains are verified in our connected Google Search Console account? Call ONLY the list_search_console_sites tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call list_search_console_sites to display all verified search console site URLs linked to our workspace.
+Call ONLY the list_search_console_sites tool to display all verified search console site URLs linked to our workspace. Do not call any other tools.
 ```
 
 ---
@@ -55,14 +57,14 @@ Retrieves Google Analytics 4 traffic channels, session lengths, user engagement,
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-What is our web traffic breakdown from Google Analytics 4, and how much traffic is arriving from AI assistants?
+What is our web traffic breakdown from Google Analytics 4, and how much traffic is arriving from AI assistants? Call ONLY the get_ga4_traffic_report tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Run get_ga4_traffic_report to inspect total users, session counts, channel attribution, and AI assistant referral percentages.
+Run ONLY the get_ga4_traffic_report tool to inspect total users, session counts, channel attribution, and AI assistant referral percentages. Do not call any other tools.
 ```
 
 ---
@@ -76,14 +78,14 @@ Retrieves Microsoft Clarity user experience telemetry: scroll depth, rage clicks
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Show our Microsoft Clarity user experience stats: average scroll depth, rage clicks, and dead click rates.
+Show our Microsoft Clarity user experience stats: average scroll depth, rage clicks, and dead click rates. Call ONLY the get_clarity_heatmaps tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Use get_clarity_heatmaps to pull behavioral UX telemetry and identify landing page friction points.
+Use ONLY the get_clarity_heatmaps tool to pull behavioral UX telemetry and identify landing page friction points. Do not call any other tools.
 ```
 
 ---
@@ -97,14 +99,14 @@ Retrieves paid search campaign performance, impressions, ad spend, and conversio
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-How are our Google Ads campaigns performing? Show total ad spend, impressions, and conversions.
+How are our Google Ads campaigns performing? Show total ad spend, impressions, and conversions. Call ONLY the get_google_ads_report tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute get_google_ads_report to review active search campaign spend and conversion metrics.
+Execute ONLY the get_google_ads_report tool to review active search campaign spend and conversion metrics. Do not call any other tools.
 ```
 
 ---
@@ -118,12 +120,12 @@ Checks connection and authentication status for all third-party toolkits (GSC, G
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Check the connection and sync status of all our marketing and analytics integrations.
+Check the connection and sync status of all our marketing and analytics integrations. Call ONLY the get_integrations_status tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Run get_integrations_status to verify which toolkits (Google Search Console, GA4, Clarity, Ads, Slack) are active and authenticated.
+Run ONLY the get_integrations_status tool to verify which toolkits (Google Search Console, GA4, Clarity, Ads, Slack) are active and authenticated. Do not call any other tools.
 ```

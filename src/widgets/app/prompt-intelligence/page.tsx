@@ -31,9 +31,9 @@ export default function PromptIntelligenceWidget() {
     const { callTool, sendFollowUpMessage } = useWidgetSDK();
     const { isReady, data } = useCognerdData<PromptData>('/prompt-intelligence');
     const { c } = useColors();
-    const [state, setState] = useWidgetState(() => ({ tab: 'active' as 'new' | 'active' }));
-
-    const tab = state?.tab || 'active';
+    const initialTab: 'new' | 'active' = data?.status === 'new' ? 'new' : 'active';
+    const [state, setState] = useWidgetState(() => ({ tab: initialTab }));
+    const tab = state?.tab || initialTab;
     const visible = asArray(data?.prompts).filter((p) => (data?.status === 'all' ? p.status === tab : true));
 
     return (

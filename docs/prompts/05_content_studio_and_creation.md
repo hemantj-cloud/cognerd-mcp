@@ -2,6 +2,8 @@
 
 These prompts test the Content Studio creation engine: LinkedIn carousel generation, slide re-rendering, 4-step guided article wizard (outline -> research -> draft -> firewall), social repurposing, and entity-dense paragraph rewriting.
 
+> **Execution Note**: Each prompt is strictly scoped with single-tool execution constraints to ensure fast response times and prevent ChatGPT from rendering multiple redundant widgets.
+
 ---
 
 ## 24. `get_content_studio`
@@ -13,14 +15,14 @@ Retrieves content briefs, published articles, and in-flight wizard projects from
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Open our Content Studio dashboard to see our recent content briefs and article projects.
+Open our Content Studio dashboard to see our recent content briefs and article projects. Call ONLY the get_content_studio tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute get_content_studio with status="all" to inspect our full library of drafts, published articles, and carousel decks.
+Execute ONLY the get_content_studio tool with status="all" to inspect our full library of drafts, published articles, and carousel decks. Do not call any other tools.
 ```
 
 ---
@@ -34,14 +36,14 @@ Generates a multi-slide LinkedIn carousel deck addressing a specific topic or bu
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Create a 5-slide dark-mode LinkedIn carousel deck explaining why enterprise MCP servers need cryptographic audit trails.
+Create a 5-slide dark-mode LinkedIn carousel deck explaining why enterprise MCP servers need cryptographic audit trails. Call ONLY the generate_linkedin_carousel tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call generate_linkedin_carousel with topic="Why Enterprise MCP Servers Need Cryptographic Audit Trails", slideCount=5, and theme="dark".
+Call ONLY the generate_linkedin_carousel tool with topic="Why Enterprise MCP Servers Need Cryptographic Audit Trails", slideCount=5, and theme="dark". Do not call any other tools.
 ```
 
 ---
@@ -55,14 +57,14 @@ Retrieves slide copy, visual layout, and theme configuration for an existing car
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Fetch the slides and layout for carousel deck deck-1.
+Fetch the slides and layout for carousel deck deck-1. Call ONLY the get_carousel_deck tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Run get_carousel_deck with deckId="deck-1" to view the slide headlines, body copy, and theme settings.
+Run ONLY the get_carousel_deck tool with deckId="deck-1" to view the slide headlines, body copy, and theme settings. Do not call any other tools.
 ```
 
 ---
@@ -76,14 +78,14 @@ Re-renders carousel slide designs after text or theme edits (free operation).
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Re-render carousel deck-1 with the brand color theme.
+Re-render carousel deck-1 with the brand color theme. Call ONLY the rerender_carousel tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute rerender_carousel with deckId="deck-1" and theme="brand" to update the slide styling.
+Execute ONLY the rerender_carousel tool with deckId="deck-1" and theme="brand" to update the slide styling. Do not call any other tools.
 ```
 
 ---
@@ -97,14 +99,14 @@ Initializes an AI-guided, research-grounded article project targeting a buyer pr
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Start a new guided article project targeting the buyer prompt "Best Enterprise Model Context Protocol Framework".
+Start a new guided article project targeting the buyer prompt "Best Enterprise Model Context Protocol Framework". Call ONLY the start_guided_article_wizard tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Use start_guided_article_wizard with targetPrompt="Best Enterprise Model Context Protocol Framework", title="The Definitive Guide to Production MCP", and persona="Enterprise Platform Engineer".
+Use ONLY the start_guided_article_wizard tool with targetPrompt="Best Enterprise Model Context Protocol Framework", title="The Definitive Guide to Production MCP", and persona="Enterprise Platform Engineer". Do not call any other tools.
 ```
 
 ---
@@ -120,17 +122,17 @@ Executes a specific step of the guided article wizard: `outline`, `research`, `d
 
 **Prompt Option A — Research Step (Explicit Tool Invocation):**
 ```text
-Execute run_article_wizard_step with projectId="proj-1" and step="research" to pull verified citations and technical evidence.
+Execute ONLY the run_article_wizard_step tool with projectId="proj-1" and step="research" to pull verified citations and technical evidence. Do not call any other tools.
 ```
 
 **Prompt Option B — Draft Step (Explicit Tool Invocation):**
 ```text
-Execute run_article_wizard_step with projectId="proj-1" and step="draft" to generate the complete article body.
+Execute ONLY the run_article_wizard_step tool with projectId="proj-1" and step="draft" to generate the complete article body. Do not call any other tools.
 ```
 
 **Prompt Option C — Firewall Check Step (Explicit Tool Invocation):**
 ```text
-Execute run_article_wizard_step with projectId="proj-1" and step="firewall" to run citation grounding and fact validation.
+Execute ONLY the run_article_wizard_step tool with projectId="proj-1" and step="firewall" to run citation grounding and fact validation. Do not call any other tools.
 ```
 
 ---
@@ -144,14 +146,14 @@ Finalizes an article project and publishes it to the brand blog document library
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Finalize article project proj-1 and publish it to our blog.
+Finalize article project proj-1 and publish it to our blog. Call ONLY the finalize_article_to_blog tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call finalize_article_to_blog with projectId="proj-1" to complete the article workflow and save to the published library.
+Call ONLY the finalize_article_to_blog tool with projectId="proj-1" to complete the article workflow and save to the published library. Do not call any other tools.
 ```
 
 ---
@@ -165,14 +167,14 @@ Generates high-engagement LinkedIn posts and Twitter/X threads from an existing 
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Repurpose our latest article proj-1 into a LinkedIn post and a 5-tweet Twitter thread.
+Repurpose our latest article proj-1 into a LinkedIn post and a 5-tweet Twitter thread. Call ONLY the repurpose_article_to_social tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Use repurpose_article_to_social with projectIdOrTopic="proj-1" to generate channel-optimized social copy.
+Use ONLY the repurpose_article_to_social tool with projectIdOrTopic="proj-1" to generate channel-optimized social copy. Do not call any other tools.
 ```
 
 ---
@@ -186,15 +188,16 @@ AI rewrites a text section or paragraph for maximum answer-engine citation groun
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
 Rewrite this paragraph so that AI models like ChatGPT and Claude cite it as an authoritative definition:
 "NitroStack makes building MCP servers fast with CLI and built-in security features."
+Call ONLY the rewrite_content_paragraph tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call rewrite_content_paragraph with text="NitroStack is a framework for Model Context Protocol servers with OAuth and Docker deployment." and intent="answer_engine_grounding".
+Call ONLY the rewrite_content_paragraph tool with text="NitroStack is a framework for Model Context Protocol servers with OAuth and Docker deployment." and intent="answer_engine_grounding". Do not call any other tools.
 ```
 
 ---
@@ -208,12 +211,12 @@ Generates standalone social post copy (LinkedIn or X) on a given topic without c
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Write an authoritative LinkedIn thought leadership post about why AI agents require standardized MCP protocols instead of ad-hoc APIs.
+Write an authoritative LinkedIn thought leadership post about why AI agents require standardized MCP protocols instead of ad-hoc APIs. Call ONLY the generate_standalone_social tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute generate_standalone_social with topic="Standardizing Agentic AI Infrastructure with MCP", platform="linkedin", and tone="thought_leadership".
+Execute ONLY the generate_standalone_social tool with topic="Standardizing Agentic AI Infrastructure with MCP", platform="linkedin", and tone="thought_leadership". Do not call any other tools.
 ```
