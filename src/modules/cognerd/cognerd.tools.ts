@@ -116,7 +116,7 @@ export class CognerdTools {
 
     @Tool({
         name: 'get_credit_balance',
-        description: 'Retrieve current credit balance and neuron reservation status for the authenticated workspace (legacy compatibility).',
+        description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification).',
         inputSchema: z.object({}),
         examples: CREDIT_BALANCE_EXAMPLE,
     })
@@ -397,7 +397,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_icp',
         description:
-            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (6 credits).',
+            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (consumes 1 tools.llm_generation.daily allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
@@ -468,7 +468,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_linkedin_carousel',
         description:
-            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (15 credits).',
+            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (consumes 1 tools.carousel.daily allowance).',
         inputSchema: BrandScopeSchema.extend({
             topic: z.string().describe('Topic or thesis of the carousel deck.'),
             targetAudience: z.string().optional().describe('Target customer demographic (e.g. CTOs, Growth Leads).'),
@@ -526,7 +526,7 @@ export class CognerdTools {
     @Tool({
         name: 'start_guided_article_wizard',
         description:
-            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (30 credits).',
+            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (consumes 1 briefs.blog.monthly allowance).',
         inputSchema: BrandScopeSchema.extend({
             targetPrompt: z.string().describe('Buyer prompt or comparison query to target.'),
             title: z.string().optional().describe('Proposed article working title.'),
@@ -663,7 +663,7 @@ export class CognerdTools {
     @Tool({
         name: 'refresh_competitor_backlinks',
         description:
-            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors (5 credits per competitor).',
+            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors.',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)

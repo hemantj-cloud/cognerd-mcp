@@ -18,12 +18,21 @@ Integrates directly with CogNerd's production REST API (`https://api.cognerd.in`
 
 ## 🛠️ Tool Catalog (39 Tools)
 
-### Free Intelligence & Telemetry Tools (32 Tools — 0 Credits / 0 Runs)
+### Metering: The CogNerd Run System (Runs, Briefs, Daily Tool Calls)
+Per the **CogNerd Run System Specification**, usage is **not metered via an abstract credit pool**. Instead, it uses four concrete, named allowance units queried from `GET /me/usage` (`get_run_allowance`):
+* **Runs (`runs.monthly`)**: End-to-end full brand analysis and scans (resets 1st of month 00:00 UTC).
+* **Briefs (`briefs.blog.monthly`, `briefs.linkedin.monthly`, `briefs.x.monthly`)**: Content briefs by channel. Includes initial draft and up to 3 regenerations.
+* **Daily Tool Calls (`tools.aeo_audit.daily`, `tools.geo_assets.daily`, `tools.llm_generation.daily`, `tools.carousel.daily`)**: Dedicated daily allowances for AI tools (resets 00:00 UTC).
+* **Brands (`brands.max`)**: Account brand capacity limit.
+
+---
+
+### Free Intelligence & Telemetry Tools (32 Tools — 0 Allowances Consumed)
 | Tool | Widget | Description |
 | :--- | :--- | :--- |
-| `whoami` | `/whoami` | Authenticated user profile, visible brands, and active permissions |
-| `get_run_allowance` | `/credit-balance` | Current monthly run allowances and reset window |
-| `get_credit_balance` | `/credit-balance` | Workspace credit balance (legacy compatibility) |
+| `whoami` | `/whoami` | Authenticated user identity, visible brands, granted scopes, and keyId |
+| `get_run_allowance` | `/credit-balance` | **Primary Metering Tool**: Queries active run, brief, and daily tool call allowances |
+| `get_credit_balance` | `/credit-balance` | Legacy compatibility tool (superseded by `get_run_allowance`) |
 | `get_ai_insights` | `/ai-insights` | **Initial Tool**: Core brand visibility score, engine mix, citation metrics |
 | `get_weak_prompts` | `/prompt-intelligence` | High-intent buyer prompts where brand is unranked or losing |
 | `get_audience_personas` | `/audience-personas` | Target buyer personas and ICP segments |
@@ -54,16 +63,16 @@ Integrates directly with CogNerd's production REST API (`https://api.cognerd.in`
 | `get_google_ads_report` | — | Google Ads campaign spend and conversion metrics |
 | `get_integrations_status` | — | Connectivity status across all third-party integrations |
 
-### Paid Action Tools (7 Tools)
-| Tool | Nominal Cost | Description |
+### Metered Action Tools (7 Tools)
+| Tool | Metering Allowance | Description |
 | :--- | :--- | :--- |
-| `generate_geo_assets` | 1 run allowance | Generate production `llms.txt`, entity files, and JSON-LD schema |
-| `trigger_aeo_audit` | 1 run allowance | Queue a fresh live multi-engine AEO audit scan |
-| `generate_icp` | 6 credits | Auto-generate tailored buyer ICP profiles |
-| `generate_linkedin_carousel` | 15 credits | Generate downloadable multi-slide LinkedIn PDF carousel |
-| `start_guided_article_wizard` | 30 credits | Launch guided long-form research and fact-grounded drafting |
-| `run_article_wizard_step` | 1 step | Progress wizard through research, draft, and firewall check |
-| `refresh_competitor_backlinks` | 5 credits/comp | Trigger live crawl of competitor backlink sources |
+| `generate_geo_assets` | 1 daily tool call (`tools.geo_assets.daily`) | Generate production `llms.txt`, entity files, and JSON-LD schema |
+| `trigger_aeo_audit` | 1 daily tool call (`tools.aeo_audit.daily`) | Queue a fresh live multi-engine AEO audit scan |
+| `generate_icp` | 1 daily tool call (`tools.llm_generation.daily`) | Auto-generate tailored buyer ICP profiles and personas |
+| `generate_linkedin_carousel` | 1 daily tool call (`tools.carousel.daily`) | Generate downloadable multi-slide LinkedIn PDF carousel |
+| `start_guided_article_wizard` | 1 monthly brief (`briefs.blog.monthly`) | Launch guided long-form research and fact-grounded drafting |
+| `run_article_wizard_step` | Included with active brief | Progress wizard through research, draft, and firewall check |
+| `refresh_competitor_backlinks` | Competitor intelligence crawl | Refresh live backlink telemetry for brand and competitors |
 
 ---
 

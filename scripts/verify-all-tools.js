@@ -126,27 +126,26 @@ async function runVerification() {
   console.log('🛡️ Step 3: Verifying 7 PAID Tools with Credit/Run Protection');
   console.log('------------------------------------------------------------------------');
 
-  // 1. generate_geo_assets (normally 1 daily allowance)
-  // Verified safely: invokes handler which returns queued/mock status without triggering destructive run
-  await testTool('generate_geo_assets', 'PAID', '1 allowance', () => tools.generateGeoAssets({}, ctx));
+  // 1. generate_geo_assets (1 tools.geo_assets.daily)
+  await testTool('generate_geo_assets', 'METERED', '1 tool call', () => tools.generateGeoAssets({}, ctx));
 
-  // 2. trigger_aeo_audit (normally 1 daily allowance)
-  await testTool('trigger_aeo_audit', 'PAID', '1 allowance', () => tools.triggerAeoAudit({}, ctx));
+  // 2. trigger_aeo_audit (1 tools.aeo_audit.daily)
+  await testTool('trigger_aeo_audit', 'METERED', '1 tool call', () => tools.triggerAeoAudit({}, ctx));
 
-  // 3. generate_icp (normally 6 credits)
-  await testTool('generate_icp', 'PAID', '6 credits', () => tools.generateIcp({}, ctx));
+  // 3. generate_icp (1 tools.llm_generation.daily)
+  await testTool('generate_icp', 'METERED', '1 tool call', () => tools.generateIcp({}, ctx));
 
-  // 4. generate_linkedin_carousel (normally 15 credits)
-  await testTool('generate_linkedin_carousel', 'PAID', '15 credits', () => tools.generateLinkedinCarousel({ topic: 'GEO Strategies' }, ctx));
+  // 4. generate_linkedin_carousel (1 tools.carousel.daily)
+  await testTool('generate_linkedin_carousel', 'METERED', '1 tool call', () => tools.generateLinkedinCarousel({ topic: 'GEO Strategies' }, ctx));
 
-  // 5. start_guided_article_wizard (normally 30 credits)
-  await testTool('start_guided_article_wizard', 'PAID', '30 credits', () => tools.startGuidedArticleWizard({ targetPrompt: 'What is AEO?' }, ctx));
+  // 5. start_guided_article_wizard (1 briefs.blog.monthly)
+  await testTool('start_guided_article_wizard', 'METERED', '1 brief', () => tools.startGuidedArticleWizard({ targetPrompt: 'What is AEO?' }, ctx));
 
-  // 6. run_article_wizard_step (part of article wizard)
-  await testTool('run_article_wizard_step', 'PAID', 'Wizard step', () => tools.runArticleWizardStep({ projectId: 'dry_run_proj', step: 'outline' }, ctx));
+  // 6. run_article_wizard_step (Included with active brief)
+  await testTool('run_article_wizard_step', 'METERED', 'Wizard step', () => tools.runArticleWizardStep({ projectId: 'dry_run_proj', step: 'outline' }, ctx));
 
-  // 7. refresh_competitor_backlinks (normally 5 credits / competitor)
-  await testTool('refresh_competitor_backlinks', 'PAID', '5 credits/comp', () => tools.refreshCompetitorBacklinks({}, ctx));
+  // 7. refresh_competitor_backlinks (Competitor telemetry)
+  await testTool('refresh_competitor_backlinks', 'METERED', 'Telemetry crawl', () => tools.refreshCompetitorBacklinks({}, ctx));
 
   // Step 4: Post-Audit Verification - Validate Zero Credit Drain
   console.log('\n========================================================================');
