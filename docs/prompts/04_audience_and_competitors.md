@@ -2,6 +2,8 @@
 
 These prompts test buyer persona generation, Ideal Customer Profile (ICP) extraction, competitor management, and backlink authority tracking.
 
+> **Execution Note**: Each prompt is strictly scoped with single-tool execution constraints to ensure fast response times and prevent ChatGPT from rendering multiple redundant widgets.
+
 ---
 
 ## 18. `get_audience_personas`
@@ -13,14 +15,14 @@ Displays our brand's ICP (Ideal Customer Profile) and active buyer personas with
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Show our target audience buyer personas and their key pain points.
+Show our target audience buyer personas and their key pain points. Call ONLY the get_audience_personas tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Use get_audience_personas to display our current ICP definition, persona job titles, and buying triggers.
+Use ONLY the get_audience_personas tool to display our current ICP definition, persona job titles, and buying triggers. Do not call any other tools.
 ```
 
 ---
@@ -34,14 +36,14 @@ Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scrap
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Analyze our brand website positioning and generate a new Ideal Customer Profile (ICP) with buyer personas.
+Analyze our brand website positioning and generate a new Ideal Customer Profile (ICP) with buyer personas. Call ONLY the generate_icp tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute generate_icp to analyze our site and construct tailored buyer personas with enterprise pain points.
+Execute ONLY the generate_icp tool to analyze our site and construct tailored buyer personas with enterprise pain points. Do not call any other tools.
 ```
 
 ---
@@ -55,14 +57,14 @@ Suggests buyer persona profiles from free-text company descriptions or industry 
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Suggest 3 buyer personas for an enterprise AI infrastructure product targeting engineering leadership in North America.
+Suggest 3 buyer personas for an enterprise AI infrastructure product targeting engineering leadership in North America. Call ONLY the suggest_personas tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Call suggest_personas with name="NitroStack", industry="Developer Tools / MCP Platform", and audience="Enterprise CTOs & Heads of AI".
+Call ONLY the suggest_personas tool with name="NitroStack", industry="Developer Tools / MCP Platform", and audience="Enterprise CTOs & Heads of AI". Do not call any other tools.
 ```
 
 ---
@@ -76,19 +78,19 @@ Adds, removes, or lists tracked competitor domains for the active brand to monit
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A — Listing Competitors (Natural Conversational):**
+**Prompt Option A — Listing Competitors (Natural Conversational with Single-Tool Constraint):**
 ```text
-List all tracked competitors currently monitored in our AI visibility benchmark.
+List all tracked competitors currently monitored in our AI visibility benchmark. Call ONLY the manage_competitors tool (do not execute any other tools).
 ```
 
 **Prompt Option B — Listing Competitors (Explicit Tool Invocation):**
 ```text
-Execute manage_competitors with action="list" to view our tracked competitor domains.
+Execute ONLY the manage_competitors tool with action="list" to view our tracked competitor domains. Do not call any other tools.
 ```
 
 **Prompt Option C — Adding a Competitor (Explicit Tool Invocation):**
 ```text
-Use manage_competitors to add LangChain to our tracked competitor list with action="add", name="LangChain", and url="https://langchain.com".
+Use ONLY the manage_competitors tool to add LangChain to our tracked competitor list with action="add", name="LangChain", and url="https://langchain.com". Do not call any other tools.
 ```
 
 ---
@@ -102,14 +104,14 @@ Retrieves DataForSEO backlink profile, referring domains, domain rank, and compe
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-What does our backlink profile look like compared to our competitors? Show our referring domains and authority score.
+What does our backlink profile look like compared to our competitors? Show our referring domains and authority score. Call ONLY the get_backlinks_snapshot tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Execute get_backlinks_snapshot to view our referring domain count, total backlinks, and competitive link gap analysis.
+Execute ONLY the get_backlinks_snapshot tool to view our referring domain count, total backlinks, and competitive link gap analysis. Do not call any other tools.
 ```
 
 ---
@@ -123,12 +125,12 @@ Triggers a live DataForSEO backlink refresh crawl for the brand and tracked comp
 
 ### Ready-to-Execute Prompts
 
-**Prompt Option A (Natural Conversational):**
+**Prompt Option A (Natural Conversational with Single-Tool Constraint):**
 ```text
-Refresh our competitor backlink data to check for newly acquired referring domains.
+Refresh our competitor backlink data to check for newly acquired referring domains. Call ONLY the refresh_competitor_backlinks tool (do not execute any other tools).
 ```
 
 **Prompt Option B (Explicit Tool Invocation):**
 ```text
-Run refresh_competitor_backlinks to trigger a live backlink recalculation across our domain and tracked competitors.
+Run ONLY the refresh_competitor_backlinks tool to trigger a live backlink recalculation across our domain and tracked competitors. Do not call any other tools.
 ```
