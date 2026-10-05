@@ -1,21 +1,6 @@
 import { ToolDecorator as Tool, Widget, InitialTool, ExecutionContext, Injectable, UseGuards, z } from '@nitrostack/core';
 import { CognerdService } from './cognerd.service.js';
 import { OAuthGuard } from '../../guards/oauth.guard.js';
-import {
-    AGXP_EXAMPLE,
-    AI_INSIGHTS_EXAMPLE,
-    AI_READINESS_AUDIT_EXAMPLE,
-    AI_VISIBILITY_EXAMPLE,
-    AUDIENCE_PERSONAS_EXAMPLE,
-    CITATIONS_EXAMPLE,
-    COMPETITIVE_INTELLIGENCE_EXAMPLE,
-    CONTENT_STUDIO_EXAMPLE,
-    GEO_ASSETS_EXAMPLE,
-    PROMPT_INTELLIGENCE_EXAMPLE,
-    SCAN_HISTORY_EXAMPLE,
-    WHOAMI_EXAMPLE,
-    RUN_ALLOWANCE_EXAMPLE,
-} from './cognerd.examples.js';
 
 /**
  * CogNerd widget metadata. Logo is served from the widget app and cognerd.ai.
@@ -88,7 +73,6 @@ export class CognerdTools {
         name: 'whoami',
         description: 'Verify current authenticated user, visible brands, granted scopes, and workspace run allowances. Standalone tool.',
         inputSchema: z.object({}),
-        examples: WHOAMI_EXAMPLE,
     })
     @Widget(cognerdWidget('whoami'))
     @UseGuards(OAuthGuard)
@@ -104,7 +88,6 @@ export class CognerdTools {
         description:
             'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System. Standalone tool.',
         inputSchema: z.object({}),
-        examples: RUN_ALLOWANCE_EXAMPLE,
     })
     @Widget(cognerdWidget('run-allowance'))
     @UseGuards(OAuthGuard)
@@ -119,7 +102,6 @@ export class CognerdTools {
         name: 'get_credit_balance',
         description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification). Standalone tool.',
         inputSchema: z.object({}),
-        examples: RUN_ALLOWANCE_EXAMPLE,
     })
     @Widget(cognerdWidget('run-allowance'))
     @UseGuards(OAuthGuard)
@@ -150,7 +132,6 @@ export class CognerdTools {
         description:
             'Open the CogNerd AI Insights overview dashboard: visibility score, mentions, citations, drops, trend, and mentions by engine. Standalone tool: DO NOT invoke alongside get_ai_visibility or get_citations.',
         inputSchema: BrandScopeSchema,
-        examples: AI_INSIGHTS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
@@ -167,7 +148,6 @@ export class CognerdTools {
         description:
             'Show detected audience personas and ICP inputs used to seed CogNerd prompt scenarios for the brand. Standalone tool.',
         inputSchema: BrandScopeSchema,
-        examples: AUDIENCE_PERSONAS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('audience-personas'))
@@ -183,7 +163,6 @@ export class CognerdTools {
         description:
             'Retrieve the active prompt scenario catalog and buyer question inventory. Standalone tool: DO NOT invoke if user asks specifically for weak prompts, citations, or visibility table.',
         inputSchema: PromptIntelSchema,
-        examples: PROMPT_INTELLIGENCE_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('prompt-intelligence'))
@@ -199,7 +178,6 @@ export class CognerdTools {
         description:
             'Retrieve the detailed AI engine visibility matrix and citation table (positions, mention rates, sources). Standalone tool: DO NOT invoke alongside get_weak_prompts or get_prompt_intelligence.',
         inputSchema: VisibilitySchema,
-        examples: AI_VISIBILITY_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-visibility'))
@@ -218,7 +196,6 @@ export class CognerdTools {
         description:
             'Every source AI engines cite when they mention the brand, plus owned pages that get picked up. Standalone tool: DO NOT invoke alongside get_ai_visibility.',
         inputSchema: CitationsSchema,
-        examples: CITATIONS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('citations'))
@@ -234,7 +211,6 @@ export class CognerdTools {
         description:
             'Share of voice, sentiment, mention velocity, and authority versus tracked competitors. Standalone tool.',
         inputSchema: BrandScopeSchema,
-        examples: COMPETITIVE_INTELLIGENCE_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('competitive-intelligence'))
@@ -250,7 +226,6 @@ export class CognerdTools {
         description:
             'Past CogNerd analysis runs: status, dates, prompt volume, mentions, citations, and visibility score movement. Standalone tool.',
         inputSchema: BrandScopeSchema,
-        examples: SCAN_HISTORY_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('scan-history'))
@@ -266,7 +241,6 @@ export class CognerdTools {
         description:
             'AEO / answer-readiness audit: crawl score, schema, chunk structure, entity clarity, and citation-surface findings. Standalone tool.',
         inputSchema: BrandScopeSchema,
-        examples: AI_READINESS_AUDIT_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
@@ -284,7 +258,6 @@ export class CognerdTools {
         inputSchema: BrandScopeSchema.extend({
             jobId: z.string().optional().describe('Job ID of the generated assets run (returned by generate_geo_assets)'),
         }),
-        examples: GEO_ASSETS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('geo-assets'))
@@ -301,7 +274,6 @@ export class CognerdTools {
         description:
             'AGXP (AI Growth Experience Platform) loop: Connect, Presence, Prompts, Gaps, Publish, and Lift scores for the brand. Standalone tool.',
         inputSchema: BrandScopeSchema,
-        examples: AGXP_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('agxp'))
@@ -317,7 +289,6 @@ export class CognerdTools {
         description:
             'Content Studio briefs generated from visibility gaps: target prompt, outline, estimated citation lift, and production status. Standalone tool.',
         inputSchema: ContentStudioSchema,
-        examples: CONTENT_STUDIO_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
