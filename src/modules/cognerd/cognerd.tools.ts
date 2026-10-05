@@ -31,9 +31,12 @@ function cognerdWidget(route: string) {
 }
 
 function extractToken(ctx: ExecutionContext): string | undefined {
-    const authHeader = ctx.metadata?.authorization as string | undefined;
-    if (authHeader?.startsWith('Bearer ')) {
-        return authHeader.substring(7);
+    const rawAuth = (ctx.metadata?.authorization || ctx.metadata?.Authorization) as string | undefined;
+    if (rawAuth?.startsWith('Bearer ')) {
+        return rawAuth.substring(7).trim();
+    }
+    if (rawAuth && !rawAuth.includes(' ') && (rawAuth.startsWith('cgnrd_') || rawAuth.length >= 10)) {
+        return rawAuth.trim();
     }
     return (ctx.auth as any)?.token || (ctx.metadata?._oauth as string) || (ctx.metadata?.token as string) || undefined;
 }
@@ -83,7 +86,7 @@ export class CognerdTools {
 
     @Tool({
         name: 'whoami',
-        description: 'Verify current authenticated user, visible brands, granted scopes, and wallet credit balance.',
+        description: 'Verify current authenticated user, visible brands, granted scopes, and workspace run allowances.',
         inputSchema: z.object({}),
         examples: WHOAMI_EXAMPLE,
     })
@@ -97,8 +100,23 @@ export class CognerdTools {
     }
 
     @Tool({
+        name: 'get_run_allowance',
+        description:
+            'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System.',
+        inputSchema: z.object({}),
+    })
+    @Widget(cognerdWidget('credit-balance'))
+    @UseGuards(OAuthGuard)
+    async getRunAllowance(_args: Record<string, any>, ctx: ExecutionContext) {
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getRunAllowance(token);
+        ctx.logger.info('Run allowance', { plan: data.plan?.name, runsRemaining: data.allowances?.['runs.monthly']?.remaining });
+        return data;
+    }
+
+    @Tool({
         name: 'get_credit_balance',
-        description: 'Retrieve current credit balance and neuron reservation status for the authenticated workspace.',
+        description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification).',
         inputSchema: z.object({}),
         examples: CREDIT_BALANCE_EXAMPLE,
     })
@@ -117,6 +135,7 @@ export class CognerdTools {
             'Find buyer intent prompts where this brand is losing or invisible in AI engine answers while competitors are cited.',
         inputSchema: BrandScopeSchema,
     })
+    @Widget(cognerdWidget('prompt-intelligence'))
     @UseGuards(OAuthGuard)
     async getWeakPrompts(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const token = extractToken(ctx);
@@ -261,14 +280,17 @@ export class CognerdTools {
         name: 'get_geo_assets',
         description:
             'GEO assets for the brand: llms.txt, schema, robots, entity graph, FAQ extract, and AI sitemap — plus publish status.',
-        inputSchema: BrandScopeSchema,
+        inputSchema: BrandScopeSchema.extend({
+            jobId: z.string().optional().describe('Job ID of the generated assets run (returned by generate_geo_assets)'),
+        }),
         examples: GEO_ASSETS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('geo-assets'))
-    async getGeoAssets(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+    async getGeoAssets(args: { brandId?: string; jobId?: string }, ctx: ExecutionContext) {
         const token = extractToken(ctx);
-        const data = await this.cognerd.getGeoAssets(args.brandId, token);
+        const targetId = args.jobId || args.brandId;
+        const data = await this.cognerd.getGeoAssets(targetId, token);
         ctx.logger.info('GEO assets', { total: data.totalAssets, published: data.published });
         return data;
     }
@@ -312,7 +334,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_geo_assets',
         description:
-            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (20 credits).',
+            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (consumes 1 daily GEO tool allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
@@ -327,7 +349,7 @@ export class CognerdTools {
     @Tool({
         name: 'trigger_aeo_audit',
         description:
-            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (50 credits).',
+            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (consumes 1 daily AEO tool allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
@@ -342,14 +364,17 @@ export class CognerdTools {
     @Tool({
         name: 'get_latest_aeo_report',
         description:
-            'Fetches the latest stored technical AEO audit report, crawl findings, and recommendation breakdown.',
-        inputSchema: BrandScopeSchema,
+            'Fetches technical AEO audit report, crawl findings, and recommendation breakdown by audit job_id or brand.',
+        inputSchema: BrandScopeSchema.extend({
+            jobId: z.string().optional().describe('Job ID of the AEO audit run (returned by trigger_aeo_audit)'),
+        }),
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
-    async getLatestAeoReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
+    async getLatestAeoReport(args: { brandId?: string; jobId?: string }, ctx: ExecutionContext) {
         const token = extractToken(ctx);
-        const data = await this.cognerd.getLatestAeoReport(args.brandId, token);
+        const targetId = args.jobId || args.brandId;
+        const data = await this.cognerd.getLatestAeoReport(targetId, token);
         ctx.logger.info('Latest AEO report', { score: data?.score, grade: data?.grade });
         return data;
     }
@@ -372,7 +397,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_icp',
         description:
-            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (6 credits).',
+            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (consumes 1 tools.llm_generation.daily allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
@@ -443,7 +468,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_linkedin_carousel',
         description:
-            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (15 credits).',
+            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (consumes 1 tools.carousel.daily allowance).',
         inputSchema: BrandScopeSchema.extend({
             topic: z.string().describe('Topic or thesis of the carousel deck.'),
             targetAudience: z.string().optional().describe('Target customer demographic (e.g. CTOs, Growth Leads).'),
@@ -501,7 +526,7 @@ export class CognerdTools {
     @Tool({
         name: 'start_guided_article_wizard',
         description:
-            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (30 credits).',
+            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (consumes 1 briefs.blog.monthly allowance).',
         inputSchema: BrandScopeSchema.extend({
             targetPrompt: z.string().describe('Buyer prompt or comparison query to target.'),
             title: z.string().optional().describe('Proposed article working title.'),
@@ -638,7 +663,7 @@ export class CognerdTools {
     @Tool({
         name: 'refresh_competitor_backlinks',
         description:
-            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors (5 credits per competitor).',
+            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors.',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)

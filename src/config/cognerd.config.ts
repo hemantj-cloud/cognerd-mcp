@@ -45,7 +45,7 @@ const EnvSchema = z.object({
     .string()
     .url('COGNERD_API_BASE_URL must be a valid URL')
     .optional()
-    .default('https://mcp.cognerd.in'),
+    .default('https://api.cognerd.in'),
   COGNERD_REST_BASE_URL: z
     .string()
     .url('COGNERD_REST_BASE_URL must be a valid URL')

@@ -8,15 +8,15 @@ This guide explains how OAuth 2.1 authentication works with the live CogNerd MCP
 
 CogNerd exposes its product surface as a single MCP server with built-in OAuth 2.1. A compliant MCP client discovers everything at runtime without hard-coded secrets.
 
-* **Live MCP Endpoint**: `https://mcp.cognerd.in/mcp`
-* **OAuth Authorization Server**: `https://mcp.cognerd.in`
+* **Live API Endpoint**: `https://api.cognerd.in`
+* **OAuth Authorization Server**: `https://api.cognerd.in`
 * **Transport**: Streamable HTTP MCP (POST /mcp)
 * **Auth Method**: OAuth 2.1 with PKCE (S256) & Dynamic Client Registration (RFC 7591)
 * **Client Type**: Public Client (`token_endpoint_auth_methods_supported: ["none"]`) — no client secret required.
 * **Scope**: `cognerd` (the single supported scope)
 
 > [!NOTE]
-> Do not use any `*.ts.net` URL that may appear in internal notes — that is a private Tailscale hostname. The `mcp.cognerd.in` URL above is the official public one.
+> Do not use any `*.ts.net` URL that may appear in internal notes — that is a private Tailscale hostname. The `api.cognerd.in` URL above is the official public one.
 
 ---
 
@@ -26,26 +26,26 @@ The live CogNerd gateway provides runtime discovery:
 
 ### 1. Protected Resource Discovery
 ```http
-GET https://mcp.cognerd.in/.well-known/oauth-protected-resource
+GET https://api.cognerd.in/.well-known/oauth-protected-resource
 ```
 ```json
 {
-  "resource": "https://mcp.cognerd.in/mcp",
-  "authorization_servers": ["https://mcp.cognerd.in"],
+  "resource": "https://api.cognerd.in/mcp",
+  "authorization_servers": ["https://api.cognerd.in"],
   "bearer_methods_supported": ["header"]
 }
 ```
 
 ### 2. Authorization Server Discovery
 ```http
-GET https://mcp.cognerd.in/.well-known/oauth-authorization-server
+GET https://api.cognerd.in/.well-known/oauth-authorization-server
 ```
 ```json
 {
-  "issuer": "https://mcp.cognerd.in",
-  "authorization_endpoint": "https://mcp.cognerd.in/authorize",
-  "token_endpoint": "https://mcp.cognerd.in/token",
-  "registration_endpoint": "https://mcp.cognerd.in/register",
+  "issuer": "https://api.cognerd.in",
+  "authorization_endpoint": "https://api.cognerd.in/authorize",
+  "token_endpoint": "https://api.cognerd.in/token",
+  "registration_endpoint": "https://api.cognerd.in/register",
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
   "code_challenge_methods_supported": ["S256"],
@@ -56,16 +56,13 @@ GET https://mcp.cognerd.in/.well-known/oauth-authorization-server
 
 ---
 
-## 🔐 Sandbox Account Details
+## 🔐 Dynamic Authentication & Token Delegation
 
-A dedicated CogNerd sandbox account is pre-provisioned with isolated brand data and 500 test credits:
-
-| Field | Value |
-| :--- | :--- |
-| **Login Email** | `nitrostack.sandbox@cognerd.ai` |
-| **Password** | `VDAPdpRAWFobUhyb` |
-| **Sandbox Brand** | CogNerd (`https://www.cognerd.ai`) |
-| **Credits** | 500 credits (for scans, audits, content generation) |
+The server implements **zero-storage, dynamic per-caller authentication**:
+- **Stateless Execution**: The server does not store user passwords or personal credentials in `.env`.
+- **Client Token Forwarding**: Every incoming client request provides an `Authorization: Bearer <token>` header.
+- **Upstream Delegation**: The MCP server dynamically extracts the caller's token in `extractToken(ctx)` and forwards it directly to `https://api.cognerd.in`.
+- **Isolated User Context**: Each user operates strictly within their own workspace, brand profiles, and credit allowances.
 
 ---
 
@@ -87,14 +84,14 @@ HOST=localhost
 OAUTH_REQUIRED=false
 
 # Public identity of the MCP server
-RESOURCE_URI=https://mcp.cognerd.in/mcp
+RESOURCE_URI=https://api.cognerd.in/mcp
 
 # CogNerd Authorization Server URL
-AUTH_SERVER_URL=https://mcp.cognerd.in
+AUTH_SERVER_URL=https://api.cognerd.in
 
 # Token validation audience & issuer
-TOKEN_AUDIENCE=https://mcp.cognerd.in/mcp
-TOKEN_ISSUER=https://mcp.cognerd.in
+TOKEN_AUDIENCE=https://api.cognerd.in/mcp
+TOKEN_ISSUER=https://api.cognerd.in
 
 # Dynamic Client Registration (RFC 7591)
 OAUTH_ENABLE_CLIENT_REGISTRATION=true
@@ -102,13 +99,13 @@ OAUTH_ENABLE_CLIENT_REGISTRATION=true
 # =============================================================================
 # CogNerd Specific Settings
 # =============================================================================
-COGNERD_API_BASE_URL=https://mcp.cognerd.in
+COGNERD_API_BASE_URL=https://api.cognerd.in
 
 # Scope: 'cognerd' is the single supported scope
 COGNERD_SCOPE=cognerd
 
-COGNERD_AUTH_URL=https://mcp.cognerd.in/authorize
-COGNERD_TOKEN_URL=https://mcp.cognerd.in/token
+COGNERD_AUTH_URL=https://api.cognerd.in/authorize
+COGNERD_TOKEN_URL=https://api.cognerd.in/token
 COGNERD_REDIRECT_URI=http://localhost:3005/auth/callback
 
 COGNERD_MOCK_MODE=false
@@ -121,7 +118,7 @@ COGNERD_MOCK_MODE=false
 ### 1. Claude Desktop / claude.ai
 * Go to **Connectors** → **Add**
 * Name: `CogNerd`
-* URL: `https://mcp.cognerd.in/mcp`
+* URL: `https://api.cognerd.in/mcp`
 * The browser opens the CogNerd login page; sign in with the sandbox account (`nitrostack.sandbox@cognerd.ai` / `VDAPdpRAWFobUhyb`) and approve.
 
 ### 2. mcp-remote
@@ -130,7 +127,7 @@ COGNERD_MOCK_MODE=false
   "mcpServers": {
     "cognerd": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.cognerd.in/mcp"]
+      "args": ["-y", "mcp-remote", "https://api.cognerd.in/mcp"]
     }
   }
 }

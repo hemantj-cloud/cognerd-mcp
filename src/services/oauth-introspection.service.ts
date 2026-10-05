@@ -18,7 +18,7 @@ const introspectionCache = new Map<string, CachedIntrospection>();
  * RFC 7662 Token Introspection Service for CogNerd MCP
  *
  * Exposes a /oauth/introspect endpoint to validate opaque CogNerd Bearer tokens
- * (`cgnrd_...`) against the live upstream CogNerd MCP server (https://mcp.cognerd.in/mcp).
+ * (`cgnrd_...`) against the live upstream CogNerd API server.
  * Integrates natively with NitroStack's HTTP auth middleware pipeline.
  */
 @Injectable()
@@ -129,19 +129,18 @@ export class OAuthIntrospectionService {
     const targetAud = cognerdConfig.tokenAudience || cognerdConfig.resourceUri;
 
     try {
-      const response = await fetch(`${cognerdConfig.apiBaseUrl}/mcp`, {
-        method: 'POST',
+      const cookieHeader = token.includes('session_token=')
+        ? token
+        : `__Secure-better-auth.session_token=${token}; better-auth.session_token=${token}`;
+
+      const response = await fetch(`${cognerdConfig.restBaseUrl}/api/brand-monitor/brand-profile/current`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json, text/event-stream',
+          'Accept': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'Cookie': cookieHeader,
         },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'tools/call',
-          params: { name: 'whoami', arguments: {} },
-        }),
       });
 
       // Explicit authentication failure from upstream
@@ -163,22 +162,12 @@ export class OAuthIntrospectionService {
         return { active: false };
       }
 
-      const text = await response.text();
-      // Check if upstream returned an authentication failure inside response
-      if (text.includes('"error":"invalid_token"') || text.includes('"error": "invalid_token"') || text.includes('Unauthorized')) {
-        return { active: false };
-      }
-
+      const data: any = await response.json().catch(() => null);
       let sub = 'usr_authenticated';
-      // Look for user id in JSON or Pydantic input_value
-      const userMatch = text.match(/['"]user['"]:\s*\{[^}]*?['"]id['"]:\s*['"]?([^'",\s}]+)['"]?/);
-      if (userMatch && userMatch[1]) {
-        sub = `usr_${userMatch[1]}`;
-      } else {
-        const idMatch = text.match(/['"]id['"]:\s*['"]?([0-9]+)['"]?/);
-        if (idMatch && idMatch[1] && idMatch[1] !== '1') {
-          sub = `usr_${idMatch[1]}`;
-        }
+      if (data?.brand?.billingUserId) {
+        sub = `usr_${data.brand.billingUserId}`;
+      } else if (data?.user?.id) {
+        sub = `usr_${data.user.id}`;
       }
 
       return {

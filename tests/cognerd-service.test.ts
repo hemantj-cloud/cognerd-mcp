@@ -245,6 +245,15 @@ describe('CogNerd Service & Tools Live Integration Tests', { timeout: 15000 }, (
     await expect(service.getCreditBalance()).rejects.toThrow(/Upstream 401 Unauthorized/i);
   });
 
+  it('should return run allowances aligned with CogNerd Run System', async () => {
+    const usage = await service.getRunAllowance();
+    expect(usage.plan.code).toBe('partner');
+    expect(usage.allowances['runs.monthly'].limit).toBe(15);
+    expect(usage.allowances['runs.monthly'].remaining).toBe(15);
+    expect(usage.allowances['tools.aeo_audit.daily'].limit).toBe(5);
+    expect(usage.allowances['brands.max'].limit).toBe(10);
+  });
+
   it('should return audience personas', async () => {
     const audience = await service.getAudiencePersonas();
     expect(audience.personas.length).toBeGreaterThan(0);

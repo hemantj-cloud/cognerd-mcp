@@ -358,7 +358,7 @@ export default function WhoamiWidget() {
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span style={{ color: c.muted }}>Issuer</span>
-                                        <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>https://mcp.cognerd.in</span>
+                                        <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>https://api.cognerd.in</span>
                                     </div>
                                 </div>
                             </Card>
