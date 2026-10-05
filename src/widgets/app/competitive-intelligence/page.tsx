@@ -35,7 +35,19 @@ export default function CompetitiveIntelligenceWidget() {
     const { sendFollowUpMessage } = useWidgetSDK();
     const { isReady, data } = useCognerdData<CompetitiveData>('/competitive-intelligence');
     const { c } = useColors();
-    const competitors = asArray(data?.competitors);
+    const rawComps = data?.competitors || (data as any)?.brand?.competitors;
+    const competitors = asArray(rawComps).map((c: any, i: number) => ({
+        id: c.id || `comp-${i + 1}`,
+        name: c.name || 'Competitor',
+        domain: c.domain || (c.url ? c.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0] : ''),
+        url: c.url,
+        visibility: c.visibility ?? 0,
+        sentiment: c.sentiment ?? 0,
+        shareOfVoice: c.shareOfVoice ?? 0,
+        velocity: c.velocity ?? 0,
+        authority: c.authority ?? 0,
+        mentions30d: c.mentions30d ?? 0,
+    }));
     const [state, setState] = useWidgetState(() => ({ focus: competitors[0]?.id ?? '' }));
 
     return (
@@ -94,8 +106,8 @@ export default function CompetitiveIntelligenceWidget() {
                                 />
                                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, fontSize: 11, color: c.muted }}>
                                     {competitors.map((comp, i) => (
-                                        <span key={comp.id} style={{ color: COLORS[i] }}>
-                                            ● {comp.name} {comp.shareOfVoice}%
+                                        <span key={comp.id} style={{ color: COLORS[i % COLORS.length] }}>
+                                            ● {comp.name} {comp.shareOfVoice ? `${comp.shareOfVoice}%` : 'Tracked'}
                                         </span>
                                     ))}
                                 </div>
@@ -104,13 +116,13 @@ export default function CompetitiveIntelligenceWidget() {
 
                         <SectionLabel hint={`${data.trackedBrands ?? competitors.length} brands`}>Tracked brands</SectionLabel>
                     <div style={{ display: 'grid', gap: 8 }}>
-                        {asArray(data.competitors).map((comp, i) => {
+                        {competitors.map((comp, i) => {
                             const selected = state?.focus === comp.id;
                             return (
                                 <Card
                                     key={comp.id}
                                     style={{
-                                        borderColor: selected ? COLORS[i] : c.border,
+                                        borderColor: selected ? COLORS[i % COLORS.length] : c.border,
                                         cursor: 'pointer',
                                     }}
                                 >

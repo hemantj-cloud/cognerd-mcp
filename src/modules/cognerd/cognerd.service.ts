@@ -541,34 +541,29 @@ export class CognerdService {
         const brand = await this.safeGetBrand(undefined, token);
 
         try {
-            const live = await this.apiClient.callRest<any>('/api/brand-monitor/brand-profile/current/competitors', {
-                bearerToken: token,
-            });
-            if (live && Array.isArray(live.competitors) && live.competitors.length > 0) {
-                return {
-                    brand: brand ? { name: brand.name, domain: brand.domain || brand.url } : null,
-                    dimensions: ['visibility', 'sentiment', 'share', 'velocity', 'authority'],
-                    shareOfVoiceTrend: live.shareOfVoiceTrend || [],
-                    status: 'active',
-                    hasData: true,
-                    trackedBrands: live.competitors.length,
-                    competitors: live.competitors,
-                };
-            }
-        } catch {}
-
-        try {
             const profile = await this.apiClient.callRest<any>('/api/brand-monitor/brand-profile/current', { bearerToken: token });
-            const comps = profile?.competitors || profile?.brand?.competitors;
+            const comps = profile?.brand?.competitors || profile?.competitors;
             if (Array.isArray(comps) && comps.length > 0) {
+                const mappedCompetitors = comps.map((c: any, i: number) => ({
+                    id: c.id || `comp-${i + 1}`,
+                    name: c.name || 'Competitor',
+                    domain: c.domain || (c.url ? c.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0] : ''),
+                    url: c.url,
+                    visibility: c.visibility ?? 0,
+                    sentiment: c.sentiment ?? 0,
+                    shareOfVoice: c.shareOfVoice ?? 0,
+                    velocity: c.velocity ?? 0,
+                    authority: c.authority ?? 0,
+                    mentions30d: c.mentions30d ?? 0,
+                }));
                 return {
                     brand: brand ? { name: brand.name, domain: brand.domain || brand.url } : null,
                     dimensions: ['visibility', 'sentiment', 'share', 'velocity', 'authority'],
-                    shareOfVoiceTrend: [],
+                    shareOfVoiceTrend: profile.shareOfVoiceTrend || [],
                     status: 'active',
                     hasData: true,
-                    trackedBrands: comps.length,
-                    competitors: comps,
+                    trackedBrands: mappedCompetitors.length,
+                    competitors: mappedCompetitors,
                 };
             }
         } catch {}
@@ -936,24 +931,28 @@ export class CognerdService {
         token?: string
     ) {
         const brand = await this.safeGetBrand(brandId, token);
+        let rawResult: any = null;
 
         if (action === 'add' && competitor) {
             try {
-                return await this.apiClient.callRest('/api/brand-monitor/brand-profile/current/competitors', {
+                rawResult = await this.apiClient.callRest('/api/brand-monitor/brand-profile/current/competitors', {
                     method: 'POST',
                     data: competitor,
                     params: brandId ? { brandId } : undefined,
                     bearerToken: token,
                 });
             } catch (err: any) {
-                return {
-                    status: 'error',
-                    message: `Failed to add competitor: ${err.message}`,
-                };
+                if (!err.message?.includes('ALREADY_EXISTS') && !err.message?.includes('409')) {
+                    return {
+                        status: 'error',
+                        message: `Failed to add competitor: ${err.message}`,
+                        competitors: [],
+                    };
+                }
             }
         } else if (action === 'remove' && competitor) {
             try {
-                return await this.apiClient.callRest('/api/brand-monitor/brand-profile/current/competitors', {
+                rawResult = await this.apiClient.callRest('/api/brand-monitor/brand-profile/current/competitors', {
                     method: 'DELETE',
                     data: { name: competitor.name, url: competitor.url },
                     params: brandId ? { brandId } : undefined,
@@ -963,28 +962,53 @@ export class CognerdService {
                 return {
                     status: 'error',
                     message: `Failed to remove competitor: ${err.message}`,
+                    competitors: [],
                 };
             }
         }
 
-        // Action === 'list'
-        try {
-            const profile = await this.apiClient.callRest<any>('/api/brand-monitor/brand-profile/current', {
-                params: brandId ? { brandId } : undefined,
-                bearerToken: token,
-            });
-            const competitors = profile?.competitors || profile?.brand?.competitors || [];
-            return {
-                brand: profile?.brand || (brand ? { name: brand.name, domain: brand.domain || brand.url } : null),
-                competitors,
-                totalCompetitors: competitors.length,
-            };
-        } catch {}
+        let competitorsList: any[] = [];
+        if (rawResult?.brand?.competitors && Array.isArray(rawResult.brand.competitors)) {
+            competitorsList = rawResult.brand.competitors;
+        } else if (rawResult?.competitors && Array.isArray(rawResult.competitors)) {
+            competitorsList = rawResult.competitors;
+        } else {
+            try {
+                const profile = await this.apiClient.callRest<any>('/api/brand-monitor/brand-profile/current', {
+                    params: brandId ? { brandId } : undefined,
+                    bearerToken: token,
+                });
+                competitorsList = profile?.brand?.competitors || profile?.competitors || [];
+            } catch {}
+        }
+
+        const mappedCompetitors = competitorsList.map((c: any, i: number) => ({
+            id: c.id || `comp-${i + 1}`,
+            name: c.name || 'Competitor',
+            domain: c.domain || (c.url ? c.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0] : ''),
+            url: c.url,
+            visibility: c.visibility ?? 0,
+            sentiment: c.sentiment ?? 0,
+            shareOfVoice: c.shareOfVoice ?? 0,
+            velocity: c.velocity ?? 0,
+            authority: c.authority ?? 0,
+            mentions30d: c.mentions30d ?? 0,
+        }));
 
         return {
             brand: brand ? { name: brand.name, domain: brand.domain || brand.url } : null,
-            competitors: [],
-            totalCompetitors: 0,
+            status: 'active',
+            action,
+            hasData: mappedCompetitors.length > 0,
+            trackedBrands: mappedCompetitors.length,
+            totalCompetitors: mappedCompetitors.length,
+            competitors: mappedCompetitors,
+            dimensions: ['visibility', 'sentiment', 'share', 'velocity', 'authority'],
+            message: action === 'add'
+                ? `Added ${competitor?.name || competitor?.url || 'competitor'} to tracking list.`
+                : action === 'remove'
+                ? `Removed ${competitor?.name || competitor?.url || 'competitor'} from tracking list.`
+                : undefined,
         };
     }
 
