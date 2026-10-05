@@ -84,9 +84,10 @@ async function validateUserToken(token: string): Promise<boolean> {
 export function createOAuthGatewayRouter(): express.Router {
   const router = express.Router();
 
-  // Support parsing JSON and form-urlencoded bodies
-  router.use(express.json());
-  router.use(express.urlencoded({ extended: true }));
+  // Scoped body parsers applied only to routes requiring body parsing,
+  // preventing consumption of the raw HTTP stream for downstream MCP (/mcp) requests.
+  const jsonBody = express.json();
+  const formBody = express.urlencoded({ extended: true });
 
   // Common CORS headers
   const setCorsHeaders = (res: express.Response) => {
@@ -161,8 +162,8 @@ export function createOAuthGatewayRouter(): express.Router {
     });
   };
 
-  router.post('/oauth/v2/register', handleRegistration);
-  router.post('/register', handleRegistration);
+  router.post('/oauth/v2/register', jsonBody, handleRegistration);
+  router.post('/register', jsonBody, handleRegistration);
   router.options('/oauth/v2/register', handleRegistration);
   router.options('/register', handleRegistration);
 
@@ -483,8 +484,8 @@ export function createOAuthGatewayRouter(): express.Router {
     res.redirect(302, callbackUrl.toString());
   };
 
-  router.post('/oauth/v2/authorize', handleAuthorizePost);
-  router.post('/authorize', handleAuthorizePost);
+  router.post('/oauth/v2/authorize', formBody, jsonBody, handleAuthorizePost);
+  router.post('/authorize', formBody, jsonBody, handleAuthorizePost);
 
   // =============================================================================
   // 6. OAuth 2.1 Token Exchange Endpoint (POST)
@@ -562,13 +563,49 @@ export function createOAuthGatewayRouter(): express.Router {
     });
   };
 
-  router.post('/oauth/v2/token', handleTokenPost);
-  router.post('/token', handleTokenPost);
+  router.post('/oauth/v2/token', formBody, jsonBody, handleTokenPost);
+  router.post('/token', formBody, jsonBody, handleTokenPost);
   router.options('/oauth/v2/token', handleTokenPost);
   router.options('/token', handleTokenPost);
 
+  // RFC 7662 Token Introspection
+  const handleIntrospect = async (req: express.Request, res: express.Response) => {
+    setCorsHeaders(res);
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    const token =
+      req.body?.token ||
+      req.query?.token ||
+      (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : '');
+
+    if (!token) {
+      return res.json({ active: false });
+    }
+
+    const isValid = await validateUserToken(token);
+    if (!isValid) {
+      return res.json({ active: false });
+    }
+
+    return res.json({
+      active: true,
+      scope: 'cognerd',
+      client_id: 'cognerd-chatgpt',
+      sub: 'usr_authenticated',
+      token_type: 'Bearer',
+      exp: Math.floor(Date.now() / 1000) + 2592000,
+    });
+  };
+
+  router.post('/oauth/introspect', formBody, jsonBody, handleIntrospect);
+  router.get('/oauth/introspect', handleIntrospect);
+  router.options('/oauth/introspect', handleIntrospect);
+
   return router;
 }
+
+const OAUTH_GATEWAY_ATTACHED = Symbol.for('cognerd.oauth.gateway.attached');
 
 /**
  * Attaches the OAuth Gateway router to an Express application,
@@ -576,6 +613,8 @@ export function createOAuthGatewayRouter(): express.Router {
  */
 export function setupOAuthGateway(app: express.Application): void {
   if (!app) return;
+  if ((app as any)[OAUTH_GATEWAY_ATTACHED]) return;
+  (app as any)[OAUTH_GATEWAY_ATTACHED] = true;
 
   const router = createOAuthGatewayRouter();
   app.use(router);
