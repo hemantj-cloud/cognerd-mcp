@@ -588,12 +588,20 @@ export function createOAuthGatewayRouter(): express.Router {
       return res.json({ active: false });
     }
 
+    const targetAud = cognerdConfig.tokenAudience || cognerdConfig.resourceUri;
     return res.json({
       active: true,
       scope: 'cognerd',
       client_id: 'cognerd-chatgpt',
       sub: 'usr_authenticated',
       token_type: 'Bearer',
+      aud: [
+        targetAud,
+        targetAud.replace(/\/mcp\/?$/, ''),
+        cognerdConfig.resourceUri,
+        cognerdConfig.authServerUrl,
+        'cognerd',
+      ],
       exp: Math.floor(Date.now() / 1000) + 2592000,
     });
   };

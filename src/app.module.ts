@@ -33,9 +33,8 @@ import { cognerdConfig } from './config/cognerd.config.js';
         OAuthModule.forRoot({
             // required is set to false because CogNerd uses opaque upstream tokens
             // rather than local JWTs with JWKS or RFC 7662 introspection endpoints.
-            // OAuth discovery endpoints are fully active, allowing clients like NitroStudio
-            // to discover and authenticate with CogNerd without false 401 rejections.
-            required: cognerdConfig.oauthRequired,
+            // OAuth discovery endpoints and OAuthGuard on each tool handle auth securely.
+            required: false,
 
             // Resource URI (Public identity of the MCP server or cloud API)
             resourceUri: cognerdConfig.resourceUri,
