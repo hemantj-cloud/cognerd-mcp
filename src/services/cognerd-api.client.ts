@@ -41,10 +41,6 @@ export class CognerdApiClient {
    * Ensures an active Better-Auth session cookie for direct REST endpoints on api-dev.cognerd.in.
    */
   async ensureSession(): Promise<string | null> {
-    if (this.config.isMockMode) {
-      return null;
-    }
-
     if (this.sessionCookie && Date.now() < this.sessionExpiresAt) {
       return this.sessionCookie;
     }
@@ -84,7 +80,7 @@ export class CognerdApiClient {
   }
 
   /**
-   * Calls a REST API endpoint on the CogNerd backend with Better-Auth session cookie.
+   * Calls a REST API endpoint on the CogNerd backend with Bearer token or session cookie.
    */
   async callRest<T = any>(
     endpoint: string,
@@ -93,24 +89,31 @@ export class CognerdApiClient {
       data?: any;
       params?: Record<string, any>;
       headers?: Record<string, string>;
+      bearerToken?: string;
     } = {}
-  ): Promise<T | null> {
-    if (this.config.isMockMode) {
-      return null;
+  ): Promise<T> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...options.headers,
+    };
+
+    if (options.bearerToken) {
+      headers['Authorization'] = `Bearer ${options.bearerToken}`;
+      if (options.bearerToken.includes('session_token=') || options.bearerToken.length >= 20) {
+        headers['Cookie'] = options.bearerToken.includes('session_token=')
+          ? options.bearerToken
+          : `__Secure-better-auth.session_token=${options.bearerToken}; better-auth.session_token=${options.bearerToken}`;
+      }
     }
-
-    try {
+    if (!headers['Cookie']) {
       const cookie = await this.ensureSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...options.headers,
-      };
-
       if (cookie) {
         headers['Cookie'] = cookie;
       }
+    }
 
+    try {
       const response = await this.httpClient.request<T>({
         url: `${this.config.restBaseUrl}${endpoint}`,
         method: options.method || 'GET',
@@ -121,9 +124,30 @@ export class CognerdApiClient {
 
       return response.data;
     } catch (error: any) {
-      console.warn(`[CognerdApiClient] REST ${options.method || 'GET'} ${endpoint} failed: ${error.message}`);
-      return null;
+      const errMsg = this.formatErrorMessage(error);
+      throw new Error(`Upstream REST ${options.method || 'GET'} ${endpoint} failed (${error.response?.status || 'Network Error'}): ${errMsg}`);
     }
+  }
+
+  private formatErrorMessage(error: any): string {
+    if (!error) return 'Unknown error';
+    const data = error.response?.data;
+    if (data) {
+      if (typeof data === 'string') return data;
+      if (typeof data.message === 'string') return data.message;
+      if (typeof data.error === 'string') return data.error;
+      if (typeof data.detail === 'string') return data.detail;
+      if (data.message && typeof data.message === 'object') {
+        return data.message.message || JSON.stringify(data.message);
+      }
+      if (data.error && typeof data.error === 'object') {
+        return data.error.message || JSON.stringify(data.error);
+      }
+      try {
+        return JSON.stringify(data);
+      } catch {}
+    }
+    return error.message || String(error);
   }
 
   /**
@@ -133,64 +157,58 @@ export class CognerdApiClient {
     toolName: string,
     args: Record<string, any> = {},
     bearerToken?: string
-  ): Promise<T | null> {
-    if (this.config.isMockMode) {
-      return null;
+  ): Promise<T> {
+    const token = bearerToken || (await this.oauthService.ensureAccessToken());
+    if (!token) {
+      throw new Error(`Authentication token required to execute tool '${toolName}'.`);
     }
 
-    try {
-      const token = bearerToken || (await this.oauthService.ensureAccessToken());
-      const payload = {
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method: 'tools/call',
-        params: {
-          name: toolName,
-          arguments: args,
-        },
-      };
+    const payload = {
+      jsonrpc: '2.0',
+      id: Date.now(),
+      method: 'tools/call',
+      params: {
+        name: toolName,
+        arguments: args,
+      },
+    };
 
-      const response = await this.httpClient.post(this.config.mcpUrl, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        responseType: 'text',
-      });
+    const response = await this.httpClient.post(this.config.mcpUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: 'text',
+    });
 
-      const parsed = this.parseMcpPayload<T>(response.data);
-      if (!parsed) return null;
-
-      if (parsed.error || parsed.result?.isError) {
-        console.warn(`[CognerdApiClient] Tool ${toolName} returned error:`, parsed.error || parsed.result?.content?.[0]?.text);
-        return null;
-      }
-
-      if (parsed.result?.structuredContent) {
-        return parsed.result.structuredContent as T;
-      }
-
-      if (parsed.result?.content?.[0]?.text) {
-        try {
-          return JSON.parse(parsed.result.content[0].text) as T;
-        } catch {
-          return parsed.result.content[0].text as unknown as T;
-        }
-      }
-
-      return (parsed.result as unknown as T) || null;
-    } catch (error: any) {
-      console.warn(`[CognerdApiClient] Failed to execute live tool '${toolName}': ${error.message}`);
-      return null;
+    const parsed = this.parseMcpPayload<T>(response.data);
+    if (!parsed) {
+      throw new Error(`Failed to parse response from upstream CogNerd tool '${toolName}'.`);
     }
+
+    if (parsed.error || parsed.result?.isError) {
+      const detail = parsed.error?.message || parsed.result?.content?.[0]?.text || 'Upstream error';
+      throw new Error(`Upstream CogNerd tool '${toolName}' failed: ${detail}`);
+    }
+
+    if (parsed.result?.structuredContent) {
+      return parsed.result.structuredContent as T;
+    }
+
+    if (parsed.result?.content?.[0]?.text) {
+      try {
+        return JSON.parse(parsed.result.content[0].text) as T;
+      } catch {
+        return parsed.result.content[0].text as unknown as T;
+      }
+    }
+
+    return (parsed.result as unknown as T);
   }
 
   /**
    * Polls an async job until completion using get_job_status tool or REST polling.
    */
-  async pollJobUntilComplete<T = any>(jobId: string, maxAttempts = 15, intervalMs = 2000): Promise<T | null> {
-    if (this.config.isMockMode) {
-      return null;
-    }
+  async pollJobUntilComplete<T = any>(jobId: string, maxAttempts = 15, intervalMs = 2000, bearerToken?: string): Promise<T | null> {
 
     for (let i = 0; i < maxAttempts; i++) {
       try {

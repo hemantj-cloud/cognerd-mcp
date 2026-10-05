@@ -30,11 +30,22 @@ function cognerdWidget(route: string) {
     };
 }
 
+function extractToken(ctx: ExecutionContext): string | undefined {
+    const rawAuth = (ctx.metadata?.authorization || ctx.metadata?.Authorization) as string | undefined;
+    if (rawAuth?.startsWith('Bearer ')) {
+        return rawAuth.substring(7).trim();
+    }
+    if (rawAuth && !rawAuth.includes(' ') && (rawAuth.startsWith('cgnrd_') || rawAuth.length >= 10)) {
+        return rawAuth.trim();
+    }
+    return (ctx.auth as any)?.token || (ctx.metadata?._oauth as string) || (ctx.metadata?.token as string) || undefined;
+}
+
 const BrandScopeSchema = z.object({
     brandId: z
         .string()
         .optional()
-        .describe('Brand id to scope results. Defaults to the active workspace brand (NitroStack).'),
+        .describe('Brand id to scope results. Defaults to the active workspace brand.'),
 });
 
 const PromptIntelSchema = BrandScopeSchema.extend({
@@ -75,26 +86,45 @@ export class CognerdTools {
 
     @Tool({
         name: 'whoami',
-        description: 'Verify current authenticated user, visible brands, granted scopes, and wallet credit balance.',
+        description: 'Verify current authenticated user, visible brands, granted scopes, and workspace run allowances.',
         inputSchema: z.object({}),
+        examples: WHOAMI_EXAMPLE,
     })
     @Widget(cognerdWidget('whoami'))
     @UseGuards(OAuthGuard)
     async whoami(_args: Record<string, any>, ctx: ExecutionContext) {
-        const data = await this.cognerd.whoami();
+        const token = extractToken(ctx);
+        const data = await this.cognerd.whoami(token);
         ctx.logger.info('WhoAmI', { user: data.user?.email, brands: data.brands?.length });
         return data;
     }
 
     @Tool({
-        name: 'get_credit_balance',
-        description: 'Retrieve current credit balance and neuron reservation status for the authenticated workspace.',
+        name: 'get_run_allowance',
+        description:
+            'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System.',
         inputSchema: z.object({}),
     })
     @Widget(cognerdWidget('credit-balance'))
     @UseGuards(OAuthGuard)
+    async getRunAllowance(_args: Record<string, any>, ctx: ExecutionContext) {
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getRunAllowance(token);
+        ctx.logger.info('Run allowance', { plan: data.plan?.name, runsRemaining: data.allowances?.['runs.monthly']?.remaining });
+        return data;
+    }
+
+    @Tool({
+        name: 'get_credit_balance',
+        description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification).',
+        inputSchema: z.object({}),
+        examples: CREDIT_BALANCE_EXAMPLE,
+    })
+    @Widget(cognerdWidget('credit-balance'))
+    @UseGuards(OAuthGuard)
     async getCreditBalance(_args: Record<string, any>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getCreditBalance();
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getCreditBalance(token);
         ctx.logger.info('Credit balance', { balance: data.balance });
         return data;
     }
@@ -105,9 +135,11 @@ export class CognerdTools {
             'Find buyer intent prompts where this brand is losing or invisible in AI engine answers while competitors are cited.',
         inputSchema: BrandScopeSchema,
     })
+    @Widget(cognerdWidget('prompt-intelligence'))
     @UseGuards(OAuthGuard)
     async getWeakPrompts(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getPromptIntelligence('new', args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getPromptIntelligence('new', args.brandId, token);
         ctx.logger.info('Weak prompts', { total: data.totalPrompts });
         return data;
     }
@@ -123,8 +155,9 @@ export class CognerdTools {
     @Widget(cognerdWidget('ai-insights'))
     @InitialTool()
     async getAiInsights(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getAiInsights();
-        ctx.logger.info('AI Insights', { brand: data.brand.name, score: data.metrics.visibilityScore });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getAiInsights(token);
+        ctx.logger.info('AI Insights', { brand: data.brand?.name, score: data.metrics?.visibilityScore });
         return data;
     }
 
@@ -138,7 +171,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('audience-personas'))
     async getAudiencePersonas(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getAudiencePersonas(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getAudiencePersonas(args.brandId, token);
         ctx.logger.info('Audience personas', { count: data.totalPersonas });
         return data;
     }
@@ -153,7 +187,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('prompt-intelligence'))
     async getPromptIntelligence(args: z.infer<typeof PromptIntelSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getPromptIntelligence(args.status, args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getPromptIntelligence(args.status, args.brandId, token);
         ctx.logger.info('Prompt intelligence', { status: data.status, total: data.totalPrompts });
         return data;
     }
@@ -168,10 +203,11 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-visibility'))
     async getAiVisibility(args: z.infer<typeof VisibilitySchema>, ctx: ExecutionContext) {
+        const token = extractToken(ctx);
         const data = await this.cognerd.getAiVisibility({
             engine: args.engine,
             mentioned: args.mentioned,
-        });
+        }, token);
         ctx.logger.info('AI visibility', { rows: data.totalRows, filters: data.filters });
         return data;
     }
@@ -186,7 +222,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('citations'))
     async getCitations(args: z.infer<typeof CitationsSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getCitations(args.engine);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getCitations(args.engine, token);
         ctx.logger.info('Citations', { engine: data.engine, rows: data.totalCitations });
         return data;
     }
@@ -201,7 +238,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('competitive-intelligence'))
     async getCompetitiveIntelligence(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getCompetitiveIntelligence();
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getCompetitiveIntelligence(token);
         ctx.logger.info('Competitive intelligence', { tracked: data.trackedBrands });
         return data;
     }
@@ -216,7 +254,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('scan-history'))
     async getScanHistory(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getScanHistory();
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getScanHistory(token);
         ctx.logger.info('Scan history', { runs: data.totalRuns });
         return data;
     }
@@ -231,7 +270,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
     async getAiReadinessAudit(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getAiReadinessAudit();
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getAiReadinessAudit(token);
         ctx.logger.info('AI readiness audit', { score: data.score, grade: data.grade });
         return data;
     }
@@ -240,13 +280,17 @@ export class CognerdTools {
         name: 'get_geo_assets',
         description:
             'GEO assets for the brand: llms.txt, schema, robots, entity graph, FAQ extract, and AI sitemap — plus publish status.',
-        inputSchema: BrandScopeSchema,
+        inputSchema: BrandScopeSchema.extend({
+            jobId: z.string().optional().describe('Job ID of the generated assets run (returned by generate_geo_assets)'),
+        }),
         examples: GEO_ASSETS_EXAMPLE,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('geo-assets'))
-    async getGeoAssets(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getGeoAssets();
+    async getGeoAssets(args: { brandId?: string; jobId?: string }, ctx: ExecutionContext) {
+        const token = extractToken(ctx);
+        const targetId = args.jobId || args.brandId;
+        const data = await this.cognerd.getGeoAssets(targetId, token);
         ctx.logger.info('GEO assets', { total: data.totalAssets, published: data.published });
         return data;
     }
@@ -261,7 +305,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('agxp'))
     async getAgxp(_args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getAgxp();
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getAgxp(token);
         ctx.logger.info('AGXP', { loopScore: data.loopScore });
         return data;
     }
@@ -276,7 +321,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async getContentStudio(args: z.infer<typeof ContentStudioSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getContentStudio(args.status);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getContentStudio(args.status, token);
         ctx.logger.info('Content studio', { status: data.status, total: data.totalBriefs });
         return data;
     }
@@ -288,42 +334,48 @@ export class CognerdTools {
     @Tool({
         name: 'generate_geo_assets',
         description:
-            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (20 credits).',
+            'Generates live llms.txt, robots.txt, sitemap, and Schema.org files for the brand site to maximize AI engine citation readiness (consumes 1 daily GEO tool allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('geo-assets'))
     async generateGeoAssets(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.generateGeoAssetsLive(args.brandId);
-        ctx.logger.info('Generate GEO assets', { jobId: data.jobId, total: data.totalAssets });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.generateGeoAssetsLive(args.brandId, token);
+        ctx.logger.info('Generate GEO assets', { jobId: data?.jobId, total: data?.totalAssets });
         return data;
     }
 
     @Tool({
         name: 'trigger_aeo_audit',
         description:
-            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (50 credits).',
+            'Initiates a live technical AEO (Answer Engine Optimization) site crawl and audit: entity clarity, schema, chunk structure, and citation surface ratings (consumes 1 daily AEO tool allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
     async triggerAeoAudit(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.triggerAeoAuditLive(args.brandId);
-        ctx.logger.info('Trigger AEO audit', { jobId: data.jobId, score: data.score });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.triggerAeoAuditLive(args.brandId, token);
+        ctx.logger.info('Trigger AEO audit', { jobId: data?.jobId, score: data?.score });
         return data;
     }
 
     @Tool({
         name: 'get_latest_aeo_report',
         description:
-            'Fetches the latest stored technical AEO audit report, crawl findings, and recommendation breakdown.',
-        inputSchema: BrandScopeSchema,
+            'Fetches technical AEO audit report, crawl findings, and recommendation breakdown by audit job_id or brand.',
+        inputSchema: BrandScopeSchema.extend({
+            jobId: z.string().optional().describe('Job ID of the AEO audit run (returned by trigger_aeo_audit)'),
+        }),
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-readiness-audit'))
-    async getLatestAeoReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getLatestAeoReport(args.brandId);
-        ctx.logger.info('Latest AEO report', { score: data.score, grade: data.grade });
+    async getLatestAeoReport(args: { brandId?: string; jobId?: string }, ctx: ExecutionContext) {
+        const token = extractToken(ctx);
+        const targetId = args.jobId || args.brandId;
+        const data = await this.cognerd.getLatestAeoReport(targetId, token);
+        ctx.logger.info('Latest AEO report', { score: data?.score, grade: data?.grade });
         return data;
     }
 
@@ -336,22 +388,24 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async getTechnicalDiagnostics(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getTechnicalDiagnostics(args.brandId);
-        ctx.logger.info('Technical diagnostics', { domain: data.domain, status: data.status });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getTechnicalDiagnostics(args.brandId, token);
+        ctx.logger.info('Technical diagnostics', { domain: data?.domain, status: data?.status });
         return data;
     }
 
     @Tool({
         name: 'generate_icp',
         description:
-            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (6 credits).',
+            'Auto-generates an Ideal Customer Profile (ICP) and buyer personas based on scraped website positioning (consumes 1 tools.llm_generation.daily allowance).',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('audience-personas'))
     async generateIcp(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.generateIcpLive(args.brandId);
-        ctx.logger.info('Generate ICP', { personas: data.personas?.length, status: data.status });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.generateIcpLive(args.brandId, token);
+        ctx.logger.info('Generate ICP', { personas: data?.personas?.length, status: data?.status });
         return data;
     }
 
@@ -373,8 +427,9 @@ export class CognerdTools {
         args: { name?: string; description?: string; industry?: string; audience?: string; location?: string },
         ctx: ExecutionContext
     ) {
-        const data = await this.cognerd.suggestPersonasLive(args);
-        ctx.logger.info('Suggest personas', { total: data.personas?.length || data.totalSuggested });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.suggestPersonasLive(args, token);
+        ctx.logger.info('Suggest personas', { total: data?.personas?.length || data?.totalSuggested });
         return data;
     }
 
@@ -395,12 +450,14 @@ export class CognerdTools {
         args: { brandId?: string; action?: 'add' | 'remove' | 'list'; name?: string; url?: string; aliases?: string[] },
         ctx: ExecutionContext
     ) {
+        const token = extractToken(ctx);
         const data = await this.cognerd.manageCompetitorLive(
             args.action || 'list',
             args.name && args.url ? { name: args.name, url: args.url, aliases: args.aliases } : undefined,
-            args.brandId
+            args.brandId,
+            token
         );
-        ctx.logger.info('Manage competitors', { action: data.action, total: data.totalCompetitors });
+        ctx.logger.info('Manage competitors', { action: data?.action, total: data?.totalCompetitors });
         return data;
     }
 
@@ -411,7 +468,7 @@ export class CognerdTools {
     @Tool({
         name: 'generate_linkedin_carousel',
         description:
-            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (15 credits).',
+            'Generates a multi-slide LinkedIn carousel deck addressing a specific topic, buyer question, or competitive claim (consumes 1 tools.carousel.daily allowance).',
         inputSchema: BrandScopeSchema.extend({
             topic: z.string().describe('Topic or thesis of the carousel deck.'),
             targetAudience: z.string().optional().describe('Target customer demographic (e.g. CTOs, Growth Leads).'),
@@ -425,8 +482,9 @@ export class CognerdTools {
         args: { brandId?: string; topic: string; targetAudience?: string; slideCount?: number; theme?: 'minimal' | 'bold' | 'dark' | 'corporate' },
         ctx: ExecutionContext
     ) {
-        const data = await this.cognerd.generateCarouselLive(args);
-        ctx.logger.info('Generate carousel', { id: data.id, slides: data.slideCount });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.generateCarouselLive(args, token);
+        ctx.logger.info('Generate carousel', { id: data?.id, slides: data?.slideCount });
         return data;
     }
 
@@ -441,8 +499,9 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async getCarouselDeck(args: { deckId: string }, ctx: ExecutionContext) {
-        const data = await this.cognerd.getCarouselDeckLive(args.deckId);
-        ctx.logger.info('Get carousel deck', { id: data.id, title: data.title });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getCarouselDeckLive(args.deckId, token);
+        ctx.logger.info('Get carousel deck', { id: data?.id, title: data?.title });
         return data;
     }
 
@@ -458,15 +517,16 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async rerenderCarousel(args: { deckId: string; theme?: 'minimal' | 'bold' | 'dark' | 'corporate' }, ctx: ExecutionContext) {
-        const data = await this.cognerd.rerenderCarouselLive(args.deckId, { theme: args.theme });
-        ctx.logger.info('Rerender carousel', { id: data.id, status: data.status });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.rerenderCarouselLive(args.deckId, { theme: args.theme }, token);
+        ctx.logger.info('Rerender carousel', { id: data?.id, status: data?.status });
         return data;
     }
 
     @Tool({
         name: 'start_guided_article_wizard',
         description:
-            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (30 credits).',
+            'Initializes an AI-guided, research-grounded article project targeting a buyer prompt gap where competitors are cited (consumes 1 briefs.blog.monthly allowance).',
         inputSchema: BrandScopeSchema.extend({
             targetPrompt: z.string().describe('Buyer prompt or comparison query to target.'),
             title: z.string().optional().describe('Proposed article working title.'),
@@ -479,8 +539,9 @@ export class CognerdTools {
         args: { brandId?: string; targetPrompt: string; title?: string; persona?: string },
         ctx: ExecutionContext
     ) {
-        const data = await this.cognerd.startArticleWizardLive(args);
-        ctx.logger.info('Start article wizard', { id: data.id, status: data.status });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.startArticleWizardLive(args, token);
+        ctx.logger.info('Start article wizard', { id: data?.id, status: data?.status });
         return data;
     }
 
@@ -496,8 +557,9 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async runArticleWizardStep(args: { projectId: string; step: 'outline' | 'research' | 'draft' | 'firewall' }, ctx: ExecutionContext) {
-        const data = await this.cognerd.runArticleWizardStepLive(args.projectId, args.step);
-        ctx.logger.info('Run wizard step', { projectId: data.projectId, step: data.stepCompleted });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.runArticleWizardStepLive(args.projectId, args.step, token);
+        ctx.logger.info('Run wizard step', { projectId: data?.projectId, step: data?.stepCompleted });
         return data;
     }
 
@@ -512,8 +574,9 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async finalizeArticleToBlog(args: { projectId: string }, ctx: ExecutionContext) {
-        const data = await this.cognerd.finalizeArticleToBlogLive(args.projectId);
-        ctx.logger.info('Finalize article', { projectId: data.projectId, status: data.status });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.finalizeArticleToBlogLive(args.projectId, token);
+        ctx.logger.info('Finalize article', { projectId: data?.projectId, status: data?.status });
         return data;
     }
 
@@ -528,8 +591,9 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('content-studio'))
     async repurposeArticleToSocial(args: { projectIdOrTopic: string }, ctx: ExecutionContext) {
-        const data = await this.cognerd.repurposeArticleLive(args.projectIdOrTopic);
-        ctx.logger.info('Repurpose article', { topic: data.topic, tweets: data.twitter?.thread?.length });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.repurposeArticleLive(args.projectIdOrTopic, token);
+        ctx.logger.info('Repurpose article', { topic: data?.topic, tweets: data?.twitter?.thread?.length });
         return data;
     }
 
@@ -549,8 +613,9 @@ export class CognerdTools {
         args: { text: string; intent?: string; brandContext?: string },
         ctx: ExecutionContext
     ) {
-        const data = await this.cognerd.rewriteParagraphLive(args);
-        ctx.logger.info('Rewrite paragraph', { lift: data.estimatedCitationLift });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.rewriteParagraphLive(args, token);
+        ctx.logger.info('Rewrite paragraph', { lift: data?.estimatedCitationLift });
         return data;
     }
 
@@ -570,8 +635,9 @@ export class CognerdTools {
         args: { topic: string; platform?: 'linkedin' | 'twitter' | 'both'; tone?: string },
         ctx: ExecutionContext
     ) {
-        const data = await this.cognerd.generateStandaloneSocialLive(args);
-        ctx.logger.info('Standalone social', { topic: data.topic, platform: data.platform });
+        const token = extractToken(ctx);
+        const data = await this.cognerd.generateStandaloneSocialLive(args, token);
+        ctx.logger.info('Standalone social', { topic: data?.topic, platform: data?.platform });
         return data;
     }
 
@@ -588,7 +654,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('competitive-intelligence'))
     async getBacklinksSnapshot(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getBacklinksSnapshotLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getBacklinksSnapshotLive(args.brandId, token);
         ctx.logger.info('Get backlinks snapshot', { domain: data.brandDomain, backlinks: data.totalBacklinks });
         return data;
     }
@@ -596,13 +663,14 @@ export class CognerdTools {
     @Tool({
         name: 'refresh_competitor_backlinks',
         description:
-            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors (5 credits per competitor).',
+            'Triggers a live DataForSEO backlink refresh crawl for the brand and tracked competitors.',
         inputSchema: BrandScopeSchema,
     })
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('competitive-intelligence'))
     async refreshCompetitorBacklinks(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.refreshCompetitorBacklinksLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.refreshCompetitorBacklinksLive(args.brandId, token);
         ctx.logger.info('Refresh backlinks', { crawled: data.competitorsCrawled, credits: data.creditsDeducted });
         return data;
     }
@@ -618,7 +686,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async getSearchConsoleReport(args: { brandId?: string; days?: number }, ctx: ExecutionContext) {
-        const data = await this.cognerd.getSearchConsoleReportLive(args.days, args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getSearchConsoleReportLive(args.days, args.brandId, token);
         ctx.logger.info('Search Console report', { clicks: data.totalClicks, impressions: data.totalImpressions });
         return data;
     }
@@ -632,7 +701,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async listSearchConsoleSites(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.listSearchConsoleSitesLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.listSearchConsoleSitesLive(args.brandId, token);
         ctx.logger.info('List GSC sites', { total: Array.isArray(data) ? data.length : 1 });
         return data;
     }
@@ -646,7 +716,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async getGa4TrafficReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getGa4TrafficReportLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getGa4TrafficReportLive(args.brandId, token);
         ctx.logger.info('GA4 report', { users: data.totalUsers, sessions: data.sessions });
         return data;
     }
@@ -660,7 +731,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async getClarityHeatmaps(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getClarityReportLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getClarityReportLive(args.brandId, token);
         ctx.logger.info('Clarity report', { sessions: data.totalSessions, scrollDepth: data.scrollDepthPercent });
         return data;
     }
@@ -674,7 +746,8 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async getGoogleAdsReport(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getGoogleAdsReportLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getGoogleAdsReportLive(args.brandId, token);
         ctx.logger.info('Google Ads report', { spend: data.totalSpend, conversions: data.conversions });
         return data;
     }
@@ -688,11 +761,9 @@ export class CognerdTools {
     @UseGuards(OAuthGuard)
     @Widget(cognerdWidget('ai-insights'))
     async getIntegrationsStatus(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
-        const data = await this.cognerd.getIntegrationsStatusLive(args.brandId);
+        const token = extractToken(ctx);
+        const data = await this.cognerd.getIntegrationsStatusLive(args.brandId, token);
         ctx.logger.info('Integrations status', { connected: data.connectedCount, total: data.totalToolkits });
         return data;
     }
 }
-
-
-

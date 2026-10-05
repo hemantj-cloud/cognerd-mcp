@@ -82,12 +82,12 @@ export default function WhoamiWidget() {
                     <MetricGrid>
                         <MetricCard
                             label="Wallet balance"
-                            value={credits?.balance != null ? formatNumber(credits.balance) : '410'}
+                            value={credits?.balance != null ? formatNumber(credits.balance) : '0'}
                             hint="Spendable credits"
                         />
                         <MetricCard
                             label="Active brands"
-                            value={brands.length || 1}
+                            value={brands.length}
                             hint="Linked workspaces"
                         />
                         <MetricCard
@@ -97,7 +97,7 @@ export default function WhoamiWidget() {
                         />
                         <MetricCard
                             label="Draft cost"
-                            value={credits?.draftArticleCost ? `${credits.draftArticleCost} cr` : '30 cr'}
+                            value={credits?.draftArticleCost ? `${credits.draftArticleCost} cr` : '0 cr'}
                             hint="Per AI article"
                         />
                     </MetricGrid>
@@ -358,7 +358,7 @@ export default function WhoamiWidget() {
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span style={{ color: c.muted }}>Issuer</span>
-                                        <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>https://mcp.cognerd.in</span>
+                                        <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>https://api.cognerd.in</span>
                                     </div>
                                 </div>
                             </Card>

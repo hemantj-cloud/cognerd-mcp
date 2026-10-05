@@ -1,4 +1,5 @@
 import { Guard, ExecutionContext, OAuthModule, OAuthTokenPayload } from '@nitrostack/core';
+import { cognerdConfig } from '../config/cognerd.config.js';
 
 /**
  * OAuth Guard
@@ -31,17 +32,19 @@ const tokenValidationCache = new Map<string, { auth: any; expiresAt: number }>()
 
 export class OAuthGuard implements Guard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Extract token from metadata (sent by Studio or OAuth client)
-    const authHeader = context.metadata?.authorization as string;
+    // Extract token from metadata (sent by Studio, MCP client, or HTTP Authorization header)
+    const rawAuth = (context.metadata?.authorization || context.metadata?.Authorization) as string | undefined;
     const metaToken = context.metadata?._oauth || context.metadata?.token;
 
     let token: string | null = null;
 
     // Try Bearer token format first
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    } else if (metaToken) {
-      token = metaToken as string;
+    if (rawAuth?.startsWith('Bearer ')) {
+      token = rawAuth.substring(7).trim();
+    } else if (rawAuth && !rawAuth.includes(' ')) {
+      token = rawAuth.trim();
+    } else if (metaToken && typeof metaToken === 'string') {
+      token = metaToken.trim();
     }
 
     // Enforcement gate: when OAuth is not required (OAUTH_REQUIRED not "true"),
@@ -51,7 +54,7 @@ export class OAuthGuard implements Guard {
       if (token) {
         const authData = await this.validateAnyToken(token);
         if (authData) {
-          context.auth = authData;
+          context.auth = { ...authData, token };
         }
       }
       return true;
@@ -70,7 +73,7 @@ export class OAuthGuard implements Guard {
       throw new Error('OAuth token validation failed: Invalid or expired access token.');
     }
 
-    context.auth = authData;
+    context.auth = { ...authData, token };
     return true;
   }
 
@@ -100,49 +103,38 @@ export class OAuthGuard implements Guard {
       }
     } catch {}
 
-    // 2. Validate CogNerd Bearer token via live gateway
+    // 2. Validate CogNerd token via live API
     if (token.startsWith('cgnrd_') || token.length >= 10) {
       try {
-        const res = await fetch('https://mcp.cognerd.in/mcp', {
-          method: 'POST',
+        const cookieHeader = token.includes('session_token=')
+          ? token
+          : `__Secure-better-auth.session_token=${token}; better-auth.session_token=${token}`;
+
+        const res = await fetch(`${cognerdConfig.restBaseUrl}/api/brand-monitor/brand-profile/current`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json, text/event-stream',
+            'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,
+            'Cookie': cookieHeader,
           },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'tools/call',
-            params: { name: 'whoami', arguments: {} },
-          }),
         });
 
         if (res.ok) {
-          const text = await res.text();
-          let data: any = null;
-          if (text.startsWith('{')) {
-            data = JSON.parse(text);
-          } else {
-            for (const line of text.split('\n')) {
-              if (line.startsWith('data: ')) {
-                try { data = JSON.parse(line.slice(6)); break; } catch {}
-              }
-            }
-          }
+          const data: any = await res.json().catch(() => null);
+          const user = data?.user || { id: data?.brand?.billingUserId || 'usr_authenticated', email: 'user@cognerd.ai' };
+          const brands = data?.brand ? [data.brand] : [];
 
-          const structured = data?.result?.structuredContent || data?.result;
-          const user = structured?.user;
-          if (user) {
-            const auth = {
-              subject: user.id || user.email || 'cognerd_user',
-              scopes: ['cognerd'],
-              clientId: structured?.keyId || 'cognerd_client',
-              tokenPayload: structured,
-            };
-            tokenValidationCache.set(token, { auth, expiresAt: Date.now() + 300000 });
-            return auth;
-          }
+          const auth = {
+            subject: user.id || user.email || 'usr_authenticated',
+            scopes: ['cognerd'],
+            clientId: data?.keyId || 'cognerd_api_client',
+            user,
+            brands,
+            tokenPayload: { user, brands, ...(data || {}) },
+          };
+          tokenValidationCache.set(token, { auth, expiresAt: Date.now() + 300000 });
+          return auth;
         }
       } catch {}
     }
