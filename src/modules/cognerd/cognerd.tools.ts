@@ -429,7 +429,7 @@ export class CognerdTools {
             args.brandId,
             token
         );
-        ctx.logger.info('Manage competitors', { action: data?.action, total: data?.totalCompetitors });
+        ctx.logger.info('Manage competitors', { action: (data as any)?.action, total: (data as any)?.trackedBrands ?? (data as any)?.competitors?.length ?? 0 });
         return data;
     }
 
