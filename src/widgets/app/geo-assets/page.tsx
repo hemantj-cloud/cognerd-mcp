@@ -72,34 +72,44 @@ export default function GeoAssetsWidget() {
                         ))}
                     </div>
 
-                    <div style={{ display: 'grid', gap: 8 }}>
-                        {rows?.map((asset) => (
-                            <Card key={asset.id}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                    <div>
-                                        <div style={{ fontWeight: 750 }}>{asset.name}</div>
-                                        <div style={{ fontSize: 12, color: c.muted, marginTop: 3 }}>
-                                            {asset.path} · {formatDate(asset.updatedAt)}
+                    {rows.length === 0 ? (
+                        <Card>
+                            <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+                                No GEO assets found for this brand. Click &quot;Generate asset&quot; to build an llms.txt or structured data asset.
+                            </p>
+                        </Card>
+                    ) : (
+                        <div style={{ display: 'grid', gap: 8 }}>
+                            {rows.map((asset) => (
+                                <Card key={asset.id}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                        <div>
+                                            <div style={{ fontWeight: 750 }}>{asset.name}</div>
+                                            <div style={{ fontSize: 12, color: c.muted, marginTop: 3 }}>
+                                                {asset.path} · {formatDate(asset.updatedAt)}
+                                            </div>
                                         </div>
+                                        <Pill active={asset.status === 'published'}>{(asset.status ?? 'draft').replace('_', ' ')}</Pill>
                                     </div>
-                                    <Pill active={asset.status === 'published'}>{(asset.status ?? 'draft').replace('_', ' ')}</Pill>
-                                </div>
-                                <p style={{ fontSize: 13, color: c.muted, margin: '10px 0 8px' }}>{asset.summary}</p>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: 12, color: c.good, fontWeight: 700 }}>
-                                        Citation lift {asset.citationLift}
-                                    </span>
-                                    <GhostButton
-                                        onClick={() =>
-                                            openExternal(`https://${data.brand?.domain ?? 'nitrostack.ai'}${asset.path ?? ''}`)
-                                        }
-                                    >
-                                        Open
-                                    </GhostButton>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
+                                    <p style={{ fontSize: 13, color: c.muted, margin: '10px 0 8px' }}>{asset.summary}</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: 12, color: c.good, fontWeight: 700 }}>
+                                            Citation lift {asset.citationLift}
+                                        </span>
+                                        {data.brand?.domain ? (
+                                            <GhostButton
+                                                onClick={() =>
+                                                    openExternal(`https://${data.brand?.domain}${asset.path ?? ''}`)
+                                                }
+                                            >
+                                                Open
+                                            </GhostButton>
+                                        ) : null}
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
                 </>
             ) : null}
         </WidgetShell>

@@ -35,7 +35,8 @@ export default function CompetitiveIntelligenceWidget() {
     const { sendFollowUpMessage } = useWidgetSDK();
     const { isReady, data } = useCognerdData<CompetitiveData>('/competitive-intelligence');
     const { c } = useColors();
-    const [state, setState] = useWidgetState(() => ({ focus: 'comp-nitrostack' }));
+    const competitors = asArray(data?.competitors);
+    const [state, setState] = useWidgetState(() => ({ focus: competitors[0]?.id ?? '' }));
 
     return (
         <WidgetShell
@@ -52,46 +53,56 @@ export default function CompetitiveIntelligenceWidget() {
             }
         >
             {data ? (
-                <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 12 }}>
-                        <Card>
-                            <SectionLabel hint="Across visibility · sentiment · share · velocity · authority">
-                                Competitive position
-                            </SectionLabel>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <RadarChart
-                                    labels={['Vis', 'Sent', 'Share', 'Vel', 'Auth']}
-                                    series={asArray(data.competitors).map((comp, i) => ({
-                                        name: comp.name,
-                                        color: COLORS[i % COLORS.length],
-                                        values: [
-                                            comp.visibility ?? 0,
-                                            comp.sentiment ?? 0,
-                                            (comp.shareOfVoice ?? 0) * 2,
-                                            comp.velocity ?? 0,
-                                            comp.authority ?? 0,
-                                        ],
-                                    }))}
+                competitors.length === 0 ? (
+                    <Card>
+                        <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+                            No competitors currently tracked for {data.brand?.name ?? 'your brand'}. Click &quot;+ Add competitor&quot; above to track rival domains.
+                        </p>
+                    </Card>
+                ) : (
+                    <>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 12 }}>
+                            <Card>
+                                <SectionLabel hint="Across visibility · sentiment · share · velocity · authority">
+                                    Competitive position
+                                </SectionLabel>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <RadarChart
+                                        labels={['Vis', 'Sent', 'Share', 'Vel', 'Auth']}
+                                        series={competitors.map((comp, i) => ({
+                                            name: comp.name,
+                                            color: COLORS[i % COLORS.length],
+                                            values: [
+                                                comp.visibility ?? 0,
+                                                comp.sentiment ?? 0,
+                                                (comp.shareOfVoice ?? 0) * 2,
+                                                comp.velocity ?? 0,
+                                                comp.authority ?? 0,
+                                            ],
+                                        }))}
+                                    />
+                                </div>
+                            </Card>
+                            <Card>
+                                <SectionLabel hint="Last 30 days">Share of voice trend</SectionLabel>
+                                <Sparkline
+                                    values={asArray(data.shareOfVoiceTrend).map((p) => {
+                                        const key = data.brand?.name || Object.keys(p).find(k => k !== 'date') || '';
+                                        return Number((p as any)[key] ?? 0);
+                                    })}
+                                    height={88}
                                 />
-                            </div>
-                        </Card>
-                        <Card>
-                            <SectionLabel hint="Last 30 days">Share of voice trend</SectionLabel>
-                            <Sparkline
-                                values={asArray(data.shareOfVoiceTrend).map((p) => Number(p.NitroStack ?? 0))}
-                                height={88}
-                            />
-                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, fontSize: 11, color: c.muted }}>
-                                {asArray(data.competitors).map((comp, i) => (
-                                    <span key={comp.id} style={{ color: COLORS[i] }}>
-                                        ● {comp.name} {comp.shareOfVoice}%
-                                    </span>
-                                ))}
-                            </div>
-                        </Card>
-                    </div>
+                                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, fontSize: 11, color: c.muted }}>
+                                    {competitors.map((comp, i) => (
+                                        <span key={comp.id} style={{ color: COLORS[i] }}>
+                                            ● {comp.name} {comp.shareOfVoice}%
+                                        </span>
+                                    ))}
+                                </div>
+                            </Card>
+                        </div>
 
-                    <SectionLabel hint={`${data.trackedBrands ?? 0} brands`}>Tracked brands</SectionLabel>
+                        <SectionLabel hint={`${data.trackedBrands ?? competitors.length} brands`}>Tracked brands</SectionLabel>
                     <div style={{ display: 'grid', gap: 8 }}>
                         {asArray(data.competitors).map((comp, i) => {
                             const selected = state?.focus === comp.id;
@@ -155,6 +166,7 @@ export default function CompetitiveIntelligenceWidget() {
                         </GhostButton>
                     </div>
                 </>
+                )
             ) : null}
         </WidgetShell>
     );

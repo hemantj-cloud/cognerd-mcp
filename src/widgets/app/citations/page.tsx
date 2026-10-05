@@ -104,25 +104,33 @@ export default function CitationsWidget() {
                     </div>
 
                     <div style={{ display: 'grid', gap: 8 }}>
-                        {asArray(data.citations).map((cite) => (
-                            <Card key={cite.id ?? cite.sourceUrl ?? cite.prompt}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                    <div>
-                                        <div style={{ fontWeight: 700, fontSize: 13 }}>{cite.sourceDomain}</div>
-                                        <div style={{ fontSize: 12, color: c.muted, marginTop: 2 }}>
-                                            {cite.engine} · {cite.prompt}
-                                        </div>
-                                    </div>
-                                    <Pill active={cite.owned}>{cite.owned ? 'Owned' : 'Third-party'}</Pill>
-                                </div>
-                                <p style={{ fontSize: 13, color: c.muted, lineHeight: 1.45, margin: '10px 0 0' }}>
-                                    “{cite.snippet}”
+                        {asArray(data.citations).length === 0 ? (
+                            <Card>
+                                <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+                                    No citations detected yet for this brand. Click Improve coverage to generate structured authority assets.
                                 </p>
-                                <div style={{ marginTop: 8 }}>
-                                    <GhostButton onClick={() => openExternal(cite.sourceUrl ?? 'https://cognerd.ai')}>Open source</GhostButton>
-                                </div>
                             </Card>
-                        ))}
+                        ) : (
+                            asArray(data.citations).map((cite) => (
+                                <Card key={cite.id ?? cite.sourceUrl ?? cite.prompt}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                        <div>
+                                            <div style={{ fontWeight: 700, fontSize: 13 }}>{cite.sourceDomain}</div>
+                                            <div style={{ fontSize: 12, color: c.muted, marginTop: 2 }}>
+                                                {cite.engine} · {cite.prompt}
+                                            </div>
+                                        </div>
+                                        <Pill active={cite.owned}>{cite.owned ? 'Owned' : 'Third-party'}</Pill>
+                                    </div>
+                                    <p style={{ fontSize: 13, color: c.muted, lineHeight: 1.45, margin: '10px 0 0' }}>
+                                        “{cite.snippet}”
+                                    </p>
+                                    <div style={{ marginTop: 8 }}>
+                                        <GhostButton onClick={() => openExternal(cite.sourceUrl ?? 'https://cognerd.ai')}>Open source</GhostButton>
+                                    </div>
+                                </Card>
+                            ))
+                        )}
                     </div>
                 </>
             ) : null}

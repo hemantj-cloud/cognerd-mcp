@@ -106,27 +106,33 @@ export default function AiInsightsWidget() {
                         <Card>
                             <SectionLabel hint="Explicit + implicit + citations">Mentions by provider</SectionLabel>
                             <div style={{ display: 'grid', gap: 10 }}>
-                                {providers.map((p) => (
-                                    <button
-                                        key={p.engine}
-                                        type="button"
-                                        onClick={() => callTool('get_citations', { engine: p.engine })}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            padding: 0,
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            color: 'inherit',
-                                        }}
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                                            <span style={{ fontWeight: 650 }}>{p.engine}</span>
-                                            <span style={{ color: c.muted }}>{formatNumber(p.mentions)}</span>
-                                        </div>
-                                        <Bar value={(p.share ?? 0) * 100} />
-                                    </button>
-                                ))}
+                                {providers.length === 0 ? (
+                                    <div style={{ color: c.muted, fontSize: 12, padding: '8px 0' }}>
+                                        No provider share data recorded yet.
+                                    </div>
+                                ) : (
+                                    providers.map((p) => (
+                                        <button
+                                            key={p.engine}
+                                            type="button"
+                                            onClick={() => callTool('get_citations', { engine: p.engine })}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                padding: 0,
+                                                textAlign: 'left',
+                                                cursor: 'pointer',
+                                                color: 'inherit',
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                                                <span style={{ fontWeight: 650 }}>{p.engine}</span>
+                                                <span style={{ color: c.muted }}>{formatNumber(p.mentions)}</span>
+                                            </div>
+                                            <Bar value={(p.share ?? 0) * 100} />
+                                        </button>
+                                    ))
+                                )}
                             </div>
                         </Card>
                     </div>
@@ -145,26 +151,32 @@ export default function AiInsightsWidget() {
                             ))}
                         </div>
                         <div style={{ display: 'grid', gap: 8 }}>
-                            {mentions.map((m) => (
-                                <div
-                                    key={m.id ?? `${m.engine}-${m.prompt}`}
-                                    style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: '88px 1fr 72px 64px',
-                                        gap: 8,
-                                        fontSize: 12,
-                                        padding: '8px 0',
-                                        borderTop: `1px solid ${c.border}`,
-                                    }}
-                                >
-                                    <strong>{m.engine}</strong>
-                                    <span style={{ color: c.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {m.prompt}
-                                    </span>
-                                    <span style={{ textTransform: 'capitalize' }}>{m.type}</span>
-                                    <span style={{ color: c.muted }}>{m.when}</span>
+                            {mentions.length === 0 ? (
+                                <div style={{ padding: '16px 0', color: c.muted, fontSize: 13, textAlign: 'center' }}>
+                                    No recent mentions detected yet. Run an analysis pass to scan AI answers.
                                 </div>
-                            ))}
+                            ) : (
+                                mentions.map((m) => (
+                                    <div
+                                        key={m.id ?? `${m.engine}-${m.prompt}`}
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '88px 1fr 72px 64px',
+                                            gap: 8,
+                                            fontSize: 12,
+                                            padding: '8px 0',
+                                            borderTop: `1px solid ${c.border}`,
+                                        }}
+                                    >
+                                        <strong>{m.engine}</strong>
+                                        <span style={{ color: c.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {m.prompt}
+                                        </span>
+                                        <span style={{ textTransform: 'capitalize' }}>{m.type}</span>
+                                        <span style={{ color: c.muted }}>{m.when}</span>
+                                    </div>
+                                ))
+                            )}
                         </div>
                         <div style={{ marginTop: 12 }}>
                             <GhostButton onClick={() => openExternal('https://app.cognerd.ai')}>

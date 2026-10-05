@@ -80,71 +80,79 @@ export default function ContentStudioWidget() {
                         ))}
                     </div>
 
-                    <div style={{ display: 'grid', gap: 8 }}>
-                        {rows?.map((brief) => {
-                            const open = state?.openId === brief.id;
-                            return (
-                                <Card key={brief.id}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setState({ ...state, openId: open ? '' : brief.id ?? '' })}
-                                            style={{ all: 'unset', cursor: 'pointer', flex: 1 }}
+                    {rows.length === 0 ? (
+                        <Card>
+                            <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+                                No content briefs found matching the selected filter. Click &quot;New brief&quot; to generate a brief from your visibility gaps.
+                            </p>
+                        </Card>
+                    ) : (
+                        <div style={{ display: 'grid', gap: 8 }}>
+                            {rows.map((brief) => {
+                                const open = state?.openId === brief.id;
+                                return (
+                                    <Card key={brief.id}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setState({ ...state, openId: open ? '' : brief.id ?? '' })}
+                                                style={{ all: 'unset', cursor: 'pointer', flex: 1 }}
+                                            >
+                                                <div style={{ fontWeight: 750 }}>{brief.title}</div>
+                                                <div style={{ fontSize: 12, color: c.muted, marginTop: 4 }}>
+                                                    {brief.targetPrompt}
+                                                </div>
+                                            </button>
+                                            <Pill active={brief.status === 'ready' || brief.status === 'gap'}>
+                                                {(brief.status ?? 'gap').replace('_', ' ')}
+                                            </Pill>
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                                gap: 8,
+                                                marginTop: 10,
+                                                fontSize: 12,
+                                            }}
                                         >
-                                            <div style={{ fontWeight: 750 }}>{brief.title}</div>
-                                            <div style={{ fontSize: 12, color: c.muted, marginTop: 4 }}>
-                                                {brief.targetPrompt}
+                                            <div>
+                                                <div style={{ color: c.muted, fontSize: 10 }}>Gap</div>
+                                                <div style={{ fontWeight: 700 }}>{brief.gapScore}</div>
                                             </div>
-                                        </button>
-                                        <Pill active={brief.status === 'ready' || brief.status === 'gap'}>
-                                            {(brief.status ?? 'gap').replace('_', ' ')}
-                                        </Pill>
-                                    </div>
-                                    <div
-                                        style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(4, 1fr)',
-                                            gap: 8,
-                                            marginTop: 10,
-                                            fontSize: 12,
-                                        }}
-                                    >
-                                        <div>
-                                            <div style={{ color: c.muted, fontSize: 10 }}>Gap</div>
-                                            <div style={{ fontWeight: 700 }}>{brief.gapScore}</div>
+                                            <div>
+                                                <div style={{ color: c.muted, fontSize: 10 }}>Lift</div>
+                                                <div style={{ fontWeight: 700 }}>{brief.estimatedCitationLift}</div>
+                                            </div>
+                                            <div>
+                                                <div style={{ color: c.muted, fontSize: 10 }}>Words</div>
+                                                <div style={{ fontWeight: 700 }}>{brief.wordCount}</div>
+                                            </div>
+                                            <div>
+                                                <div style={{ color: c.muted, fontSize: 10 }}>Persona</div>
+                                                <div style={{ fontWeight: 700 }}>{brief.persona}</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div style={{ color: c.muted, fontSize: 10 }}>Lift</div>
-                                            <div style={{ fontWeight: 700 }}>{brief.estimatedCitationLift}</div>
+                                        {open ? (
+                                            <ol style={{ margin: '12px 0 0', paddingLeft: 18, fontSize: 13, color: c.muted }}>
+                                                {asArray(brief.outline).map((item) => (
+                                                    <li key={item}>{item}</li>
+                                                ))}
+                                            </ol>
+                                        ) : null}
+                                        <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                                            <GhostButton onClick={() => callTool('get_ai_visibility', {})}>
+                                                Related prompts
+                                            </GhostButton>
+                                            <span style={{ fontSize: 11, color: c.muted, alignSelf: 'center' }}>
+                                                {formatDate(brief.updatedAt)}
+                                            </span>
                                         </div>
-                                        <div>
-                                            <div style={{ color: c.muted, fontSize: 10 }}>Words</div>
-                                            <div style={{ fontWeight: 700 }}>{brief.wordCount}</div>
-                                        </div>
-                                        <div>
-                                            <div style={{ color: c.muted, fontSize: 10 }}>Persona</div>
-                                            <div style={{ fontWeight: 700 }}>{brief.persona}</div>
-                                        </div>
-                                    </div>
-                                    {open ? (
-                                        <ol style={{ margin: '12px 0 0', paddingLeft: 18, fontSize: 13, color: c.muted }}>
-                                            {asArray(brief.outline).map((item) => (
-                                                <li key={item}>{item}</li>
-                                            ))}
-                                        </ol>
-                                    ) : null}
-                                    <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-                                        <GhostButton onClick={() => callTool('get_ai_visibility', {})}>
-                                            Related prompts
-                                        </GhostButton>
-                                        <span style={{ fontSize: 11, color: c.muted, alignSelf: 'center' }}>
-                                            {formatDate(brief.updatedAt)}
-                                        </span>
-                                    </div>
-                                </Card>
-                            );
-                        })}
-                    </div>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    )}
                 </>
             ) : null}
         </WidgetShell>

@@ -6,10 +6,9 @@ import { OAuthGatewayService } from './services/oauth-gateway.service.js';
 import { cognerdConfig } from './config/cognerd.config.js';
 
 /**
- * CogNerd MCP App (POC)
+ * CogNerd MCP App
  *
- * Mock tools + widgets for AI visibility intelligence and optimization.
- * Data is production-shaped and scoped to the NitroStack workspace brand.
+ * Tools + widgets for AI visibility intelligence and optimization.
  *
  * Implements OAuth 2.1 PKCE / Bearer Authentication & JWKS verification.
  */
@@ -25,7 +24,7 @@ import { cognerdConfig } from './config/cognerd.config.js';
 })
 @Module({
     name: 'cognerd',
-    description: 'CogNerd AI visibility intelligence — mock MCP server',
+    description: 'CogNerd AI visibility intelligence MCP server',
     imports: [
         ConfigModule.forRoot(),
 
