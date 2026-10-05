@@ -14,6 +14,7 @@ import 'dotenv/config';
 import { DIContainer, McpApplicationFactory, OAuthModule } from '@nitrostack/core';
 import { AppModule } from './app.module.js';
 import { cognerdConfig } from './config/cognerd.config.js';
+import { setupOAuthGateway } from './services/oauth-gateway.service.js';
 
 async function bootstrap() {
     try {
@@ -38,6 +39,19 @@ async function bootstrap() {
 
         // Start the server
         await server.start();
+
+        // Attach OAuth 2.1 gateway (DCR, CIMD, /authorize, /token) to HTTP transport
+        try {
+            const httpTransport = (server as any)?.getHttpTransport?.();
+            const app = httpTransport?.getApp?.();
+            if (app) {
+                setupOAuthGateway(app);
+                console.error('🔐 OAuth 2.1 Gateway attached (DCR + CIMD + PKCE Authorize & Token endpoints ready).');
+            }
+        } catch {
+            // non-fatal in isolated test runner
+        }
+
         console.error('✅ CogNerd MCP Server successfully started and ready for MCP client connections.\n');
     } catch (error) {
         console.error('❌ Failed to start CogNerd MCP Server:', error);
