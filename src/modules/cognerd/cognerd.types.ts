@@ -23,8 +23,10 @@ export type Brand = {
     industry: string;
     workspace: string;
     description: string;
+    url?: string;
     runsRemaining?: number;
     credits?: number;
+    [key: string]: any;
 };
 
 export type IcpInputs = {

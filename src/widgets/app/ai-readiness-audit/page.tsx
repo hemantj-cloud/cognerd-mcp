@@ -85,46 +85,54 @@ export default function AiReadinessAuditWidget() {
 
                     <SectionLabel>Findings</SectionLabel>
                     <div style={{ display: 'grid', gap: 8 }}>
-                        {asArray(data.findings).map((f) => {
-                            const open = state?.openId === f.id;
-                            return (
-                                <Card key={f.id}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setState({ ...state, openId: open ? '' : f.id ?? '' })}
-                                        style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                            <div>
-                                                <div style={{ fontWeight: 750 }}>{f.title}</div>
-                                                <div style={{ fontSize: 12, color: c.muted, marginTop: 3 }}>
-                                                    {f.category} · impact {f.scoreImpact}
+                        {asArray(data.findings).length === 0 ? (
+                            <Card>
+                                <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+                                    No audit findings recorded yet. Run an AI readiness audit to crawl and score your pages.
+                                </p>
+                            </Card>
+                        ) : (
+                            asArray(data.findings).map((f) => {
+                                const open = state?.openId === f.id;
+                                return (
+                                    <Card key={f.id}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setState({ ...state, openId: open ? '' : f.id ?? '' })}
+                                            style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                                <div>
+                                                    <div style={{ fontWeight: 750 }}>{f.title}</div>
+                                                    <div style={{ fontSize: 12, color: c.muted, marginTop: 3 }}>
+                                                        {f.category} · impact {f.scoreImpact}
+                                                    </div>
                                                 </div>
+                                                <span
+                                                    style={{
+                                                        fontSize: 11,
+                                                        fontWeight: 800,
+                                                        textTransform: 'uppercase',
+                                                        color: severityColor(f.severity ?? 'low', c),
+                                                    }}
+                                                >
+                                                    {f.severity}
+                                                </span>
                                             </div>
-                                            <span
-                                                style={{
-                                                    fontSize: 11,
-                                                    fontWeight: 800,
-                                                    textTransform: 'uppercase',
-                                                    color: severityColor(f.severity ?? 'low', c),
-                                                }}
-                                            >
-                                                {f.severity}
-                                            </span>
-                                        </div>
-                                        {open ? (
-                                            <div style={{ marginTop: 10, fontSize: 13, color: c.muted, lineHeight: 1.5 }}>
-                                                <p style={{ margin: '0 0 8px' }}>{f.detail}</p>
-                                                <p style={{ margin: 0 }}>
-                                                    <strong style={{ color: c.ink }}>Fix: </strong>
-                                                    {f.recommendation}
-                                                </p>
-                                            </div>
-                                        ) : null}
-                                    </button>
-                                </Card>
-                            );
-                        })}
+                                            {open ? (
+                                                <div style={{ marginTop: 10, fontSize: 13, color: c.muted, lineHeight: 1.5 }}>
+                                                    <p style={{ margin: '0 0 8px' }}>{f.detail}</p>
+                                                    <p style={{ margin: 0 }}>
+                                                        <strong style={{ color: c.ink }}>Fix: </strong>
+                                                        {f.recommendation}
+                                                    </p>
+                                                </div>
+                                            ) : null}
+                                        </button>
+                                    </Card>
+                                );
+                            })
+                        )}
                     </div>
                 </>
             ) : null}

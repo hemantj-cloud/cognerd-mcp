@@ -83,69 +83,77 @@ export default function AudiencePersonasWidget() {
                         </div>
                     </Card>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
-                        {asArray(data.personas).map((p) => {
-                            const selected = state?.selectedId === p.id;
-                            return (
-                                <Card
-                                    key={p.id}
-                                    style={{
-                                        borderColor: selected ? c.orange : c.border,
-                                        boxShadow: selected ? `0 0 0 1px ${c.orange}` : undefined,
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    <div
-                                        onClick={() => setState({ ...state, selectedId: p.id ?? '' })}
-                                        style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}
+                    {asArray(data.personas).length === 0 ? (
+                        <Card>
+                            <p style={{ margin: 0, color: c.muted, fontSize: 13 }}>
+                                No audience personas configured for this brand yet. Click Regenerate or Seed prompts to build audience personas.
+                            </p>
+                        </Card>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
+                            {asArray(data.personas).map((p) => {
+                                const selected = state?.selectedId === p.id;
+                                return (
+                                    <Card
+                                        key={p.id}
+                                        style={{
+                                            borderColor: selected ? c.orange : c.border,
+                                            boxShadow: selected ? `0 0 0 1px ${c.orange}` : undefined,
+                                            cursor: 'pointer',
+                                        }}
                                     >
                                         <div
-                                            style={{
-                                                width: 40,
-                                                height: 40,
-                                                borderRadius: 99,
-                                                background: c.orangeSoft,
-                                                color: c.orange,
-                                                display: 'grid',
-                                                placeItems: 'center',
-                                                fontWeight: 800,
-                                                flexShrink: 0,
-                                            }}
+                                            onClick={() => setState({ ...state, selectedId: p.id ?? '' })}
+                                            style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}
                                         >
-                                            {p.initials ?? '—'}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 750, fontSize: 14 }}>
-                                                The {p.location} {p.title}
+                                            <div
+                                                style={{
+                                                    width: 40,
+                                                    height: 40,
+                                                    borderRadius: 99,
+                                                    background: c.orangeSoft,
+                                                    color: c.orange,
+                                                    display: 'grid',
+                                                    placeItems: 'center',
+                                                    fontWeight: 800,
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                {p.initials ?? '—'}
                                             </div>
-                                            <div style={{ fontSize: 12, color: c.muted, marginTop: 2 }}>
-                                                {p.name} · {p.promptsSeeded} prompts seeded
+                                            <div>
+                                                <div style={{ fontWeight: 750, fontSize: 14 }}>
+                                                    The {p.location} {p.title}
+                                                </div>
+                                                <div style={{ fontSize: 12, color: c.muted, marginTop: 2 }}>
+                                                    {p.name} · {p.promptsSeeded} prompts seeded
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <p style={{ fontSize: 13, color: c.muted, lineHeight: 1.5, margin: '12px 0' }}>{p.summary}</p>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                                        <div>
-                                            <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>Pain points</div>
-                                            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: c.muted, lineHeight: 1.45 }}>
-                                                {asArray(p.painPoints).map((item) => (
-                                                    <li key={item}>{item}</li>
-                                                ))}
-                                            </ul>
+                                        <p style={{ fontSize: 13, color: c.muted, lineHeight: 1.5, margin: '12px 0' }}>{p.summary}</p>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                            <div>
+                                                <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>Pain points</div>
+                                                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: c.muted, lineHeight: 1.45 }}>
+                                                    {asArray(p.painPoints).map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>Goals</div>
+                                                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: c.muted, lineHeight: 1.45 }}>
+                                                    {asArray(p.goals).map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>Goals</div>
-                                            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: c.muted, lineHeight: 1.45 }}>
-                                                {asArray(p.goals).map((item) => (
-                                                    <li key={item}>{item}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </Card>
-                            );
-                        })}
-                    </div>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    )}
                 </>
             ) : null}
         </WidgetShell>
