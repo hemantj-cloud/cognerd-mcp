@@ -66,8 +66,6 @@ export function WidgetShell({
                                 width: 32,
                                 height: 28,
                                 objectFit: 'contain',
-                                borderRadius: 8,
-                                background: '#000',
                                 flexShrink: 0,
                             }}
                         />
