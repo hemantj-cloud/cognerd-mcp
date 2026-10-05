@@ -56,16 +56,13 @@ GET https://api.cognerd.in/.well-known/oauth-authorization-server
 
 ---
 
-## 🔐 Sandbox Account Details
+## 🔐 Dynamic Authentication & Token Delegation
 
-A dedicated CogNerd sandbox account is pre-provisioned with isolated brand data and 500 test credits:
-
-| Field | Value |
-| :--- | :--- |
-| **Login Email** | `nitrostack.sandbox@cognerd.ai` |
-| **Password** | `VDAPdpRAWFobUhyb` |
-| **Sandbox Brand** | CogNerd (`https://www.cognerd.ai`) |
-| **Credits** | 500 credits (for scans, audits, content generation) |
+The server implements **zero-storage, dynamic per-caller authentication**:
+- **Stateless Execution**: The server does not store user passwords or personal credentials in `.env`.
+- **Client Token Forwarding**: Every incoming client request provides an `Authorization: Bearer <token>` header.
+- **Upstream Delegation**: The MCP server dynamically extracts the caller's token in `extractToken(ctx)` and forwards it directly to `https://api.cognerd.in`.
+- **Isolated User Context**: Each user operates strictly within their own workspace, brand profiles, and credit allowances.
 
 ---
 
