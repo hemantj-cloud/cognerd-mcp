@@ -31,8 +31,8 @@ Per the **CogNerd Run System Specification**, usage is **not metered via an abst
 | Tool | Widget | Description |
 | :--- | :--- | :--- |
 | `whoami` | `/whoami` | Authenticated user identity, visible brands, granted scopes, and keyId |
-| `get_run_allowance` | `/credit-balance` | **Primary Metering Tool**: Queries active run, brief, and daily tool call allowances |
-| `get_credit_balance` | `/credit-balance` | Legacy compatibility tool (superseded by `get_run_allowance`) |
+| `get_run_allowance` | `/run-allowance` | **Primary Metering Tool**: Queries active run, brief, and daily tool call allowances |
+| `get_credit_balance` | `/run-allowance` | Legacy compatibility tool (superseded by `get_run_allowance`) |
 | `get_ai_insights` | `/ai-insights` | **Initial Tool**: Core brand visibility score, engine mix, citation metrics |
 | `get_weak_prompts` | `/prompt-intelligence` | High-intent buyer prompts where brand is unranked or losing |
 | `get_audience_personas` | `/audience-personas` | Target buyer personas and ICP segments |
@@ -139,7 +139,7 @@ npm start
 npm test
 ```
 
-### Verify All 39 Live Tools (Zero Credit Consumption)
+### Verify All 39 Live Tools (Zero Allowance Consumption)
 ```bash
 node scripts/verify-all-tools.js
 ```

@@ -14,7 +14,7 @@ import {
     PROMPT_INTELLIGENCE_EXAMPLE,
     SCAN_HISTORY_EXAMPLE,
     WHOAMI_EXAMPLE,
-    CREDIT_BALANCE_EXAMPLE,
+    RUN_ALLOWANCE_EXAMPLE,
 } from './cognerd.examples.js';
 
 /**
@@ -104,8 +104,9 @@ export class CognerdTools {
         description:
             'Retrieve active run, brief, and daily tool call allowances and reset windows per the CogNerd Run System.',
         inputSchema: z.object({}),
+        examples: RUN_ALLOWANCE_EXAMPLE,
     })
-    @Widget(cognerdWidget('credit-balance'))
+    @Widget(cognerdWidget('run-allowance'))
     @UseGuards(OAuthGuard)
     async getRunAllowance(_args: Record<string, any>, ctx: ExecutionContext) {
         const token = extractToken(ctx);
@@ -118,14 +119,14 @@ export class CognerdTools {
         name: 'get_credit_balance',
         description: 'Deprecated legacy compatibility tool: returns workspace allowance status (superseded by get_run_allowance per CogNerd Run System specification).',
         inputSchema: z.object({}),
-        examples: CREDIT_BALANCE_EXAMPLE,
+        examples: RUN_ALLOWANCE_EXAMPLE,
     })
-    @Widget(cognerdWidget('credit-balance'))
+    @Widget(cognerdWidget('run-allowance'))
     @UseGuards(OAuthGuard)
     async getCreditBalance(_args: Record<string, any>, ctx: ExecutionContext) {
         const token = extractToken(ctx);
         const data = await this.cognerd.getCreditBalance(token);
-        ctx.logger.info('Credit balance', { balance: data.balance });
+        ctx.logger.info('Run allowance (legacy)', { plan: data.plan?.name });
         return data;
     }
 
@@ -671,7 +672,7 @@ export class CognerdTools {
     async refreshCompetitorBacklinks(args: z.infer<typeof BrandScopeSchema>, ctx: ExecutionContext) {
         const token = extractToken(ctx);
         const data = await this.cognerd.refreshCompetitorBacklinksLive(args.brandId, token);
-        ctx.logger.info('Refresh backlinks', { crawled: data.competitorsCrawled, credits: data.creditsDeducted });
+        ctx.logger.info('Refresh backlinks', { status: (data as any)?.status });
         return data;
     }
 

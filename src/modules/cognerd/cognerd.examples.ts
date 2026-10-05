@@ -152,18 +152,48 @@ export const CONTENT_STUDIO_EXAMPLE = {
 export const WHOAMI_EXAMPLE = {
     request: {},
     response: {
-        user: { id: 'usr_123', name: 'User Name', email: 'user@example.com' },
-        brands: [{ id: 'br_123', name: 'Brand Name', url: 'https://example.com' }],
+        user: { id: 'usr_144', name: 'NitroStack Partner', email: 'hub+nitrostack@cognerd.ai' },
+        brands: [{ id: '809461f0-a5f8-4e7b-8523-9f52c7703553', name: 'NitroStack', url: 'https://nitrostack.ai' }],
         scopes: ['cognerd'],
-        credits: { balance: 100, reserved: 0, draftArticleCost: 30 },
+        plan: { code: 'partner', name: 'Partner' },
+        allowances: {
+            'runs.monthly': { enabled: true, used: 4, limit: 15, remaining: 11 },
+            'briefs.blog.monthly': { enabled: true, used: 5, limit: 50, remaining: 45 },
+            'briefs.linkedin.monthly': { enabled: true, used: 12, limit: 50, remaining: 38 },
+            'briefs.x.monthly': { enabled: true, used: 8, limit: 50, remaining: 42 },
+            'tools.aeo_audit.daily': { enabled: true, used: 1, limit: 5, remaining: 4 },
+            'tools.geo_assets.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+            'brands.max': { enabled: true, used: 1, limit: 10, remaining: 9 },
+        },
+        runs: { used: 4, limit: 15, remaining: 11 },
     },
 };
 
-export const CREDIT_BALANCE_EXAMPLE = {
+export const RUN_ALLOWANCE_EXAMPLE = {
     request: {},
     response: {
-        balance: 100,
-        reserved: 0,
-        draftArticleCost: 30,
+        plan: { code: 'partner', name: 'Partner' },
+        allowances: {
+            'runs.monthly': {
+                enabled: true,
+                used: 4,
+                limit: 15,
+                remaining: 11,
+                periodStart: '2026-10-01T00:00:00Z',
+                periodEnd: '2026-11-01T00:00:00Z',
+            },
+            'briefs.blog.monthly': { enabled: true, used: 5, limit: 50, remaining: 45 },
+            'briefs.linkedin.monthly': { enabled: true, used: 12, limit: 50, remaining: 38 },
+            'briefs.x.monthly': { enabled: true, used: 8, limit: 50, remaining: 42 },
+            'tools.aeo_audit.daily': { enabled: true, used: 1, limit: 5, remaining: 4 },
+            'tools.geo_assets.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+            'tools.llm_generation.daily': { enabled: true, used: 2, limit: 5, remaining: 3 },
+            'tools.carousel.daily': { enabled: true, used: 0, limit: 5, remaining: 5 },
+            'brands.max': { enabled: true, used: 1, limit: 10, remaining: 9 },
+        },
     },
 };
+
+/** @deprecated Legacy compatibility alias for RUN_ALLOWANCE_EXAMPLE */
+export const CREDIT_BALANCE_EXAMPLE = RUN_ALLOWANCE_EXAMPLE;
+

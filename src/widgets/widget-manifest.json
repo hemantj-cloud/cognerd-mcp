@@ -125,8 +125,20 @@
       ]
     },
     {
-      "uri": "/credit-balance",
+      "uri": "/run-allowance",
       "name": "Run System & Quotas",
+      "description": "Monthly runs, briefs, daily AI tool allowances, and brand capacity per CogNerd Run System",
+      "examples": [],
+      "tags": [
+        "runs",
+        "allowances",
+        "quotas",
+        "usage"
+      ]
+    },
+    {
+      "uri": "/credit-balance",
+      "name": "Run System & Quotas (Legacy)",
       "description": "Monthly runs, briefs, daily AI tool allowances, and brand capacity per CogNerd Run System",
       "examples": [],
       "tags": [
@@ -137,5 +149,5 @@
       ]
     }
   ],
-  "generatedAt": "2026-08-24T10:45:00.000Z"
+  "generatedAt": "2026-10-05T10:45:00.000Z"
 }

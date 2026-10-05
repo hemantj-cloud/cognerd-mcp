@@ -23,7 +23,8 @@ export type Brand = {
     industry: string;
     workspace: string;
     description: string;
-    credits: number;
+    runsRemaining?: number;
+    credits?: number;
 };
 
 export type IcpInputs = {
@@ -215,6 +216,7 @@ export type IcpGenerationResult = {
     icp: IcpInputs;
     personas: Persona[];
     suggestedTopics: string[];
+    allowanceConsumed?: string;
     creditsDeducted?: number;
     status: 'success' | 'queued';
 };
@@ -250,7 +252,8 @@ export type CarouselDeck = {
     slideCount: number;
     slides: CarouselSlide[];
     status: 'draft' | 'rendered' | 'published';
-    creditsDeducted: number;
+    allowanceConsumed?: string;
+    creditsDeducted?: number;
     createdAt: string;
     previewUrl?: string;
 };
@@ -268,7 +271,8 @@ export type ArticleWizardProject = {
     wordCount: number;
     citationsIncluded: number;
     heroImageUrl?: string;
-    creditsReserved: number;
+    allowanceConsumed?: string;
+    creditsReserved?: number;
     updatedAt: string;
 };
 

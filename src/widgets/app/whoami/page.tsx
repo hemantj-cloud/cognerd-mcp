@@ -17,6 +17,14 @@ interface BrandInfo {
     status?: string;
 }
 
+interface AllowanceDetail {
+    enabled?: boolean;
+    used?: number;
+    limit?: number | null;
+    remaining?: number | null;
+    periodEnd?: string;
+}
+
 interface WhoamiData {
     user?: {
         id?: string;
@@ -26,10 +34,24 @@ interface WhoamiData {
     };
     brands?: BrandInfo[];
     scopes?: string[];
-    credits?: {
-        balance?: number;
-        reserved?: number;
-        draftArticleCost?: number;
+    plan?: {
+        code?: string;
+        name?: string;
+    };
+    allowances?: {
+        'runs.monthly'?: AllowanceDetail;
+        'briefs.blog.monthly'?: AllowanceDetail;
+        'briefs.linkedin.monthly'?: AllowanceDetail;
+        'briefs.x.monthly'?: AllowanceDetail;
+        'tools.aeo_audit.daily'?: AllowanceDetail;
+        'tools.geo_assets.daily'?: AllowanceDetail;
+        'brands.max'?: AllowanceDetail;
+        [key: string]: any;
+    };
+    runs?: {
+        used?: number;
+        limit?: number | null;
+        remaining?: number | null;
     };
 }
 
@@ -42,7 +64,11 @@ export default function WhoamiWidget() {
     const user = data?.user;
     const brands = asArray(data?.brands);
     const scopes = asArray(data?.scopes);
-    const credits = data?.credits;
+    const planName = data?.plan?.name ?? 'Partner Plan';
+    const runsAllowance = data?.allowances?.['runs.monthly'] ?? data?.runs ?? { used: 0, limit: 15, remaining: 15 };
+    const runsRemaining = runsAllowance.remaining ?? 15;
+    const runsLimit = runsAllowance.limit ?? 15;
+    const maxBrands = data?.allowances?.['brands.max']?.limit ?? 10;
 
     const initials = user?.name
         ? user.name
@@ -67,8 +93,8 @@ export default function WhoamiWidget() {
             hasData={!!data}
             actions={
                 <>
-                    <GhostButton onClick={() => callTool('get_credit_balance', {})}>
-                        Credit balance
+                    <GhostButton onClick={() => callTool('get_run_allowance', {})}>
+                        Run allowances
                     </GhostButton>
                     <PrimaryButton onClick={() => callTool('whoami', {})}>
                         Refresh
@@ -81,13 +107,13 @@ export default function WhoamiWidget() {
                     {/* Top Stats Overview */}
                     <MetricGrid>
                         <MetricCard
-                            label="Wallet balance"
-                            value={credits?.balance != null ? formatNumber(credits.balance) : '0'}
-                            hint="Spendable credits"
+                            label="Monthly runs"
+                            value={`${runsRemaining} / ${runsLimit}`}
+                            hint="Full analysis runs left"
                         />
                         <MetricCard
                             label="Active brands"
-                            value={brands.length}
+                            value={`${brands.length} / ${maxBrands}`}
                             hint="Linked workspaces"
                         />
                         <MetricCard
@@ -96,9 +122,9 @@ export default function WhoamiWidget() {
                             hint="PKCE S256 protected"
                         />
                         <MetricCard
-                            label="Draft cost"
-                            value={credits?.draftArticleCost ? `${credits.draftArticleCost} cr` : '0 cr'}
-                            hint="Per AI article"
+                            label="Content briefs"
+                            value="50 / ch"
+                            hint="Blog, LinkedIn, X"
                         />
                     </MetricGrid>
 
@@ -199,9 +225,9 @@ export default function WhoamiWidget() {
                                 </div>
                             </Card>
 
-                            {/* Wallet Summary Card */}
+                            {/* Workspace Allowances Card */}
                             <Card>
-                                <SectionLabel hint="Neuron tokens">Wallet summary</SectionLabel>
+                                <SectionLabel hint="CogNerd Run System">Workspace allowances ({planName})</SectionLabel>
                                 <div
                                     style={{
                                         display: 'grid',
@@ -212,27 +238,30 @@ export default function WhoamiWidget() {
                                 >
                                     <div>
                                         <div style={{ fontSize: 11, color: c.muted, textTransform: 'uppercase', fontWeight: 650 }}>
-                                            Spendable balance
+                                            Monthly runs
                                         </div>
                                         <div style={{ fontSize: 22, fontWeight: 750, color: c.orange, marginTop: 4 }}>
-                                            {credits?.balance != null ? formatNumber(credits.balance) : '410'} <span style={{ fontSize: 13, fontWeight: 600 }}>credits</span>
+                                            {runsRemaining} <span style={{ fontSize: 13, fontWeight: 600 }}>/ {runsLimit} left</span>
                                         </div>
+                                        <div style={{ fontSize: 11, color: c.muted, marginTop: 2 }}>Resets 1st of month</div>
                                     </div>
                                     <div>
                                         <div style={{ fontSize: 11, color: c.muted, textTransform: 'uppercase', fontWeight: 650 }}>
-                                            Reserved in flight
+                                            Monthly briefs
                                         </div>
                                         <div style={{ fontSize: 22, fontWeight: 750, color: c.ink, marginTop: 4 }}>
-                                            {credits?.reserved ?? 0} <span style={{ fontSize: 13, fontWeight: 600 }}>credits</span>
+                                            50 <span style={{ fontSize: 13, fontWeight: 600 }}>per channel</span>
                                         </div>
+                                        <div style={{ fontSize: 11, color: c.muted, marginTop: 2 }}>Blog, LinkedIn & X</div>
                                     </div>
                                     <div>
                                         <div style={{ fontSize: 11, color: c.muted, textTransform: 'uppercase', fontWeight: 650 }}>
-                                            Draft article rate
+                                            Daily tool calls
                                         </div>
                                         <div style={{ fontSize: 22, fontWeight: 750, color: c.ink, marginTop: 4 }}>
-                                            {credits?.draftArticleCost ?? 30} <span style={{ fontSize: 13, fontWeight: 600 }}>credits</span>
+                                            5 <span style={{ fontSize: 13, fontWeight: 600 }}>each / day</span>
                                         </div>
+                                        <div style={{ fontSize: 11, color: c.muted, marginTop: 2 }}>AEO, GEO, Carousel</div>
                                     </div>
                                 </div>
                             </Card>
