@@ -18,7 +18,7 @@ if (fs.existsSync(testEnvPath)) {
 }
 
 export const TEST_CONFIG = {
-  baseUrl: process.env.COGNERD_API_BASE_URL || process.env.AUTH_SERVER_URL || 'https://mcp.cognerd.in',
+  baseUrl: process.env.COGNERD_API_BASE_URL || process.env.AUTH_SERVER_URL || 'https://api.cognerd.in',
   email: process.env.TEST_COGNERD_EMAIL || process.env.COGNERD_SANDBOX_EMAIL || '',
   password: process.env.TEST_COGNERD_PASSWORD || process.env.COGNERD_SANDBOX_PASSWORD || '',
   redirectUri: process.env.COGNERD_REDIRECT_URI || 'http://localhost:3005/auth/callback',

@@ -1,4 +1,5 @@
 import { Guard, ExecutionContext, OAuthModule, OAuthTokenPayload } from '@nitrostack/core';
+import { cognerdConfig } from '../config/cognerd.config.js';
 
 /**
  * OAuth Guard
@@ -102,70 +103,38 @@ export class OAuthGuard implements Guard {
       }
     } catch {}
 
-    // 2. Validate CogNerd Bearer token via live gateway
+    // 2. Validate CogNerd token via live API
     if (token.startsWith('cgnrd_') || token.length >= 10) {
       try {
-        const res = await fetch('https://mcp.cognerd.in/mcp', {
-          method: 'POST',
+        const cookieHeader = token.includes('session_token=')
+          ? token
+          : `__Secure-better-auth.session_token=${token}; better-auth.session_token=${token}`;
+
+        const res = await fetch(`${cognerdConfig.restBaseUrl}/api/brand-monitor/brand-profile/current`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json, text/event-stream',
+            'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,
+            'Cookie': cookieHeader,
           },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'tools/call',
-            params: { name: 'whoami', arguments: {} },
-          }),
         });
 
         if (res.ok) {
-          const text = await res.text();
-          let data: any = null;
-          if (text.startsWith('{')) {
-            try { data = JSON.parse(text); } catch {}
-          } else {
-            for (const line of text.split('\n')) {
-              if (line.startsWith('data: ')) {
-                try { data = JSON.parse(line.slice(6)); break; } catch {}
-              }
-            }
-          }
+          const data: any = await res.json().catch(() => null);
+          const user = data?.user || { id: data?.brand?.billingUserId || 'usr_authenticated', email: 'user@cognerd.ai' };
+          const brands = data?.brand ? [data.brand] : [];
 
-          let contentObj: any = null;
-          if (data?.result?.content?.[0]?.text) {
-            try {
-              contentObj = JSON.parse(data.result.content[0].text);
-            } catch {}
-          }
-
-          const structured = data?.result?.structuredContent || data?.result;
-          let user = structured?.user || contentObj?.user || data?.result?.user;
-          const brands = structured?.brands || contentObj?.brands || data?.result?.brands || [];
-
-          // Defensive handling for legacy Pydantic validation error if credits field was missing
-          if (!user && text.includes('validation error for Whoami')) {
-            const userMatch = text.match(/['"]user['"]:\s*({[^}]+})/);
-            if (userMatch && userMatch[1]) {
-              try {
-                user = JSON.parse(userMatch[1].replace(/'/g, '"'));
-              } catch {}
-            }
-          }
-
-          if (user || (!text.includes('invalid_token') && !text.includes('Unauthorized') && !text.includes('401'))) {
-            const auth = {
-              subject: user?.id || user?.email || 'usr_authenticated',
-              scopes: ['cognerd'],
-              clientId: structured?.keyId || 'cognerd_client',
-              user,
-              brands,
-              tokenPayload: { user, brands, ...(structured || {}) },
-            };
-            tokenValidationCache.set(token, { auth, expiresAt: Date.now() + 300000 });
-            return auth;
-          }
+          const auth = {
+            subject: user.id || user.email || 'usr_authenticated',
+            scopes: ['cognerd'],
+            clientId: data?.keyId || 'cognerd_api_client',
+            user,
+            brands,
+            tokenPayload: { user, brands, ...(data || {}) },
+          };
+          tokenValidationCache.set(token, { auth, expiresAt: Date.now() + 300000 });
+          return auth;
         }
       } catch {}
     }

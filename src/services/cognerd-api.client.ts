@@ -100,7 +100,13 @@ export class CognerdApiClient {
 
     if (options.bearerToken) {
       headers['Authorization'] = `Bearer ${options.bearerToken}`;
-    } else {
+      if (options.bearerToken.includes('session_token=') || options.bearerToken.length >= 20) {
+        headers['Cookie'] = options.bearerToken.includes('session_token=')
+          ? options.bearerToken
+          : `__Secure-better-auth.session_token=${options.bearerToken}; better-auth.session_token=${options.bearerToken}`;
+      }
+    }
+    if (!headers['Cookie']) {
       const cookie = await this.ensureSession();
       if (cookie) {
         headers['Cookie'] = cookie;

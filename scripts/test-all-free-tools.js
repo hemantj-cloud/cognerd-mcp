@@ -104,16 +104,16 @@ async function testAllFreeTools() {
     }),
   });
 
-  const sessionId = initRes.headers.get('mcp-session-id') || initRes.headers.get('x-session-id');
+  const nitroBrandId = '809461f0-a5f8-4e7b-8523-9f52c7703553';
 
   const freeToolsToTest = [
     { name: 'whoami', args: {} },
     { name: 'get_credit_balance', args: {} },
     { name: 'preview_brand_from_url', args: { url: 'https://cognerd.ai' } },
-    { name: 'get_weak_prompts', args: {} },
-    { name: 'get_brand_context', args: {} },
-    { name: 'get_brand_history', args: {} },
-    { name: 'get_citation_score', args: {} },
+    { name: 'get_weak_prompts', args: { brand_id: nitroBrandId } },
+    { name: 'get_brand_context', args: { brand_id: nitroBrandId } },
+    { name: 'get_brand_history', args: { brand_id: nitroBrandId } },
+    { name: 'get_citation_score', args: { brand_id: nitroBrandId } },
     { name: 'get_analytics_report', args: { days: 30 } },
     { name: 'get_search_console_report', args: { days: 30 } },
     { name: 'get_seo_insights', args: {} },
@@ -140,7 +140,6 @@ async function testAllFreeTools() {
           'Content-Type': 'application/json',
           'Accept': 'application/json, text/event-stream',
           'Authorization': `Bearer ${token}`,
-          ...(sessionId ? { 'mcp-session-id': sessionId } : {}),
         },
         body: JSON.stringify({
           jsonrpc: '2.0',
