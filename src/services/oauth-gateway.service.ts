@@ -417,6 +417,8 @@ export function createOAuthGatewayRouter(): express.Router {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Origin': 'https://app.cognerd.in',
+            'Referer': 'https://app.cognerd.in/',
           },
           body: JSON.stringify({
             email: String(req.body.email).trim(),
@@ -429,10 +431,13 @@ export function createOAuthGatewayRouter(): express.Router {
           return res.status(401).send(`<h3>Authentication Failed: Invalid email or password</h3><p>${errText}</p><a href="javascript:history.back()">Go Back</a>`);
         }
 
-        // Extract token from set-cookie or JSON response
-        const cookies = signinRes.headers.get('set-cookie');
-        if (cookies) {
-          const match = cookies.match(/(?:better-auth\.session_token|session_token)=([^;]+)/);
+        // Extract signed session token from set-cookie (preferred for Better-Auth) or JSON response
+        const rawCookies = (signinRes.headers as any).getSetCookie
+          ? (signinRes.headers as any).getSetCookie().join('; ')
+          : (signinRes.headers.get('set-cookie') || '');
+
+        if (rawCookies) {
+          const match = rawCookies.match(/(?:__Secure-better-auth\.session_token|better-auth\.session_token|session_token)=([^;]+)/);
           if (match) {
             userToken = decodeURIComponent(match[1]);
           }

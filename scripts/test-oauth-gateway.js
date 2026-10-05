@@ -99,8 +99,9 @@ async function runTest() {
       failed++;
     }
 
-    // POST /oauth/v2/authorize (Submit with live token)
-    const validLiveToken = 'QlRIJWMoO5qEUEnNwLmKFX4LEz1i3axx.c0ocggccnZmG4Tmen1ZYRSCe1D4ZVt7VVeG4WWFE1vk%3D';
+    // POST /oauth/v2/authorize (Submit with Email & Password)
+    const email = 'hub+nitrostack@cognerd.ai';
+    const password = '2TSLtgT^g56hLj5GK*9-';
     const authPostRes = await fetch(`${baseUrl}/oauth/v2/authorize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -110,7 +111,8 @@ async function runTest() {
         code_challenge: challenge,
         code_challenge_method: 'S256',
         state: state,
-        token: validLiveToken,
+        email: email,
+        password: password,
       }).toString(),
       redirect: 'manual', // do not follow redirect, inspect 302
     });
@@ -178,7 +180,8 @@ async function runTest() {
         code_challenge: challenge,
         code_challenge_method: 'S256',
         state: state,
-        token: validLiveToken,
+        email: email,
+        password: password,
       }).toString(),
       redirect: 'manual',
     });
