@@ -141,9 +141,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CognerdConfig 
     jwksUri: parsed.JWKS_URI,
     tokenAudience: parsed.TOKEN_AUDIENCE || parsed.RESOURCE_URI,
     tokenIssuer: parsed.TOKEN_ISSUER || parsed.AUTH_SERVER_URL,
-    oauthEnableClientRegistration: parsed.OAUTH_ENABLE_CLIENT_REGISTRATION ?? false,
-    oauthClientId: parsed.OAUTH_CLIENT_ID,
-    oauthClientSecret: clientSecret,
+    oauthEnableClientRegistration: parsed.OAUTH_ENABLE_CLIENT_REGISTRATION ?? true,
+    oauthClientId: parsed.OAUTH_CLIENT_ID || 'cognerd-chatgpt',
+    oauthClientSecret: clientSecret || '',
     introspectionEndpoint: parsed.INTROSPECTION_ENDPOINT || `${parsed.RESOURCE_URI.replace(/\/mcp\/?$/, '')}/oauth/introspect`,
     introspectionClientSecret: clientSecret,
 

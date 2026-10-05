@@ -2,6 +2,7 @@ import { McpApp, Module, ConfigModule, OAuthModule } from '@nitrostack/core';
 import { CognerdModule } from './modules/cognerd/cognerd.module.js';
 import { SystemHealthCheck } from './health/system.health.js';
 import { OAuthIntrospectionService } from './services/oauth-introspection.service.js';
+import { OAuthGatewayService } from './services/oauth-gateway.service.js';
 import { cognerdConfig } from './config/cognerd.config.js';
 
 /**
@@ -52,8 +53,8 @@ import { cognerdConfig } from './config/cognerd.config.js';
 
             // Dynamic Client Registration (RFC 7591)
             enableClientRegistration: cognerdConfig.oauthEnableClientRegistration,
-            staticClientId: cognerdConfig.oauthClientId,
-            staticClientSecret: cognerdConfig.oauthClientSecret,
+            staticClientId: cognerdConfig.oauthClientId || 'cognerd-chatgpt',
+            staticClientSecret: cognerdConfig.oauthClientSecret || '',
 
             // Token Introspection endpoint (if validating opaque tokens via OAuth server)
             tokenIntrospectionEndpoint: cognerdConfig.introspectionEndpoint,
@@ -73,6 +74,7 @@ import { cognerdConfig } from './config/cognerd.config.js';
     providers: [
         SystemHealthCheck,
         OAuthIntrospectionService,
+        OAuthGatewayService,
     ],
 })
 export class AppModule {}
